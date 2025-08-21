@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'left',
     marginBottom: 32,
+    fontSize: 17
   },
   imageContainer: {
     alignItems: 'center',

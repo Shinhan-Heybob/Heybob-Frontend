@@ -11,11 +11,11 @@ export const AVATARS: Avatar[] = [
     image: require('@/assets/images/login-character.png'), // 기존 로그인 캐릭터 재사용
   },
   // 추가 아바타들은 나중에 이미지 파일이 있을 때 추가
-  // {
-  //   id: 'avatar_02',
-  //   name: '메가네 캐릭터',
-  //   image: require('@/assets/images/avatars/character2.png'),
-  // },
+  {
+    id: 'avatar_02',
+    name: '토끼 캐릭터',
+    image: require('@/assets/images/character2.png'),
+  },
   // {
   //   id: 'avatar_03', 
   //   name: '모자 캐릭터',

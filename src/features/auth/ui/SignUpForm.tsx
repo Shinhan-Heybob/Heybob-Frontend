@@ -7,6 +7,7 @@ import { useAuthStore } from '@/src/store';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated, { SlideInDown } from 'react-native-reanimated';
 
 export const SignUpForm: React.FC = () => {
   const { signUp, isLoading, error, clearError } = useAuthStore();
@@ -167,73 +168,83 @@ export const SignUpForm: React.FC = () => {
             )}
           </View>
 
-          {/* 학번 입력 */}
-          <InputField
-            placeholder="학번 입력하기"
-            value={formData.studentId}
-            onChangeText={(value) => handleInputChange('studentId', value)}
-            error={errors.studentId}
-          />
+          {/* 그룹 2: 개인정보 (학교 선택 후 등장) */}
+          {formData.schoolId && (
+            <Animated.View entering={SlideInDown.duration(400)} style={styles.animatedSection}>
+              {/* 학번 입력 */}
+              <InputField
+                placeholder="학번 입력하기"
+                value={formData.studentId}
+                onChangeText={(value) => handleInputChange('studentId', value)}
+                error={errors.studentId}
+              />
 
-          {/* 이름 입력 */}
-          <InputField
-            placeholder="이름 입력하기"
-            value={formData.name}
-            onChangeText={(value) => handleInputChange('name', value)}
-            error={errors.name}
-          />
-
-          {/* 비밀번호 입력 */}
-          <InputField
-            placeholder="비밀번호 입력하기"
-            value={formData.password}
-            onChangeText={(value) => handleInputChange('password', value)}
-            secureTextEntry={true}
-            error={errors.password}
-          />
-
-          {/* 비밀번호 확인 입력 */}
-          <InputField
-            placeholder="비밀번호 확인하기"
-            value={formData.confirmPassword}
-            onChangeText={(value) => handleInputChange('confirmPassword', value)}
-            secureTextEntry={true}
-            error={errors.confirmPassword}
-          />
-
-          {/* 약관 동의 */}
-          <View style={styles.checkboxContainer}>
-            <CheckBox
-              checked={formData.agreeTerms}
-              onPress={() => handleInputChange('agreeTerms', !formData.agreeTerms)}
-              label="[필수] 이용약관 및 개인정보처리방침에 동의합니다."
-            />
-            {agreeTermsError && (
-              <Text variant="caption" style={styles.errorText}>
-                {agreeTermsError}
-              </Text>
-            )}
-          </View>
-
-          {/* 전체 에러 메시지 */}
-          {error && (
-            <Text variant="caption" style={styles.globalErrorText}>
-              {error}
-            </Text>
+              {/* 이름 입력 */}
+              <InputField
+                placeholder="이름 입력하기"
+                value={formData.name}
+                onChangeText={(value) => handleInputChange('name', value)}
+                error={errors.name}
+              />
+            </Animated.View>
           )}
 
-          {/* 로그인 링크 */}
+          {/* 그룹 3: 보안설정 (개인정보 입력 후 등장) */}
+          {formData.studentId && formData.name && (
+            <Animated.View entering={SlideInDown.duration(400)} style={styles.animatedSection}>
+              {/* 비밀번호 입력 */}
+              <InputField
+                placeholder="비밀번호 입력"
+                value={formData.password}
+                onChangeText={(value) => handleInputChange('password', value)}
+                secureTextEntry={true}
+                error={errors.password}
+              />
+
+              {/* 비밀번호 확인 입력 */}
+              <InputField
+                placeholder="비밀번호 확인하기"
+                value={formData.confirmPassword}
+                onChangeText={(value) => handleInputChange('confirmPassword', value)}
+                secureTextEntry={true}
+                error={errors.confirmPassword}
+              />
+
+              {/* 약관 동의 */}
+              <View style={styles.checkboxContainer}>
+                <CheckBox
+                  checked={formData.agreeTerms}
+                  onPress={() => handleInputChange('agreeTerms', !formData.agreeTerms)}
+                  label="[필수] 이용약관 및 개인정보처리방침에 동의합니다."
+                />
+                {agreeTermsError && (
+                  <Text variant="caption" style={styles.errorText}>
+                    {agreeTermsError}
+                  </Text>
+                )}
+              </View>
+
+              {/* 전체 에러 메시지 */}
+              {error && (
+                <Text variant="caption" style={styles.globalErrorText}>
+                  {error}
+                </Text>
+              )}
+
+              {/* 회원가입 버튼 */}
+              <Button
+                title={isLoading ? '회원가입 중...' : '회원가입 하기'}
+                onPress={handleSignUp}
+                disabled={isLoading}
+                style={styles.signUpButton}
+              />
+            </Animated.View>
+          )}
+
+          {/* 로그인 링크 - 맨 마지막 (항상 표시) */}
           <TouchableOpacity onPress={navigateToSignIn} style={styles.signInLink}>
             <Text variant="body" style={styles.signInLinkText}>이미 계정이 있으신가요? 로그인하기</Text>
           </TouchableOpacity>
-
-          {/* 회원가입 버튼 */}
-          <Button
-            title={isLoading ? '회원가입 중...' : '회원가입 하기'}
-            onPress={handleSignUp}
-            disabled={isLoading}
-            style={styles.signUpButton}
-          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -265,6 +276,9 @@ const styles = StyleSheet.create({
   form: {
     gap: 16,
   },
+  animatedSection: {
+    gap: 16,
+  },
   checkboxContainer: {
     marginTop: 8,
   },
@@ -279,7 +293,7 @@ const styles = StyleSheet.create({
     // paddingBottom: 2,
   },
   signUpButton: {
-    marginTop: 24,
+    marginTop: 16,
   },
   errorText: {
     color: '#EF4444',

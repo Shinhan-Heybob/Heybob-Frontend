@@ -14,6 +14,8 @@ interface DropdownProps {
   onSelect: (value: string) => void;
   placeholder: string;
   style?: any;
+  disabled?: boolean;
+  disabledMessage?: string;
 }
 
 // Search Icon Component
@@ -44,8 +46,11 @@ export const Dropdown: React.FC<DropdownProps> = ({
   onSelect,
   placeholder,
   style,
+  disabled = false,
+  disabledMessage = "먼저 상위 항목을 선택해주세요.",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showDisabledMessage, setShowDisabledMessage] = useState(false);
   
   const selectedOption = options.find(option => option.id === selectedValue);
   
@@ -54,12 +59,22 @@ export const Dropdown: React.FC<DropdownProps> = ({
     setIsOpen(false);
   };
 
+  const handlePress = () => {
+    if (disabled) {
+      setShowDisabledMessage(true);
+      // 2초 후 메시지 숨김
+      setTimeout(() => setShowDisabledMessage(false), 2000);
+      return;
+    }
+    setIsOpen(true);
+  };
+
   return (
     <View style={[styles.container, style]}>
       {/* Dropdown Button */}
       <TouchableOpacity
-        style={styles.button}
-        onPress={() => setIsOpen(true)}
+        style={[styles.button, disabled && styles.disabledButton]}
+        onPress={handlePress}
       >
         <View style={styles.buttonContent}>
           {/* Search Icon */}
@@ -79,9 +94,18 @@ export const Dropdown: React.FC<DropdownProps> = ({
         </View>
       </TouchableOpacity>
 
+      {/* Disabled Message */}
+      {showDisabledMessage && (
+        <View style={styles.disabledMessageContainer}>
+          <Text variant="caption" style={styles.disabledMessageText}>
+            {disabledMessage}
+          </Text>
+        </View>
+      )}
+
       {/* Modal with Options */}
       <Modal
-        visible={isOpen}
+        visible={isOpen && !disabled}
         transparent={true}
         animationType="fade"
         onRequestClose={() => setIsOpen(false)}
@@ -176,5 +200,28 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: '#111827',
+  },
+  disabledButton: {
+    backgroundColor: '#F9FAFB',
+    opacity: 0.6,
+  },
+  disabledMessageContainer: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    zIndex: 1000,
+  },
+  disabledMessageText: {
+    color: '#DC2626',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });

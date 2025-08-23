@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from '@/src/shared/ui';
+import { useMealStore } from '@/src/store';
 
 interface MealSummaryData {
   participationCount: number;  // 밥약 참여 횟수
@@ -12,8 +13,17 @@ interface MealSummaryProps {
 }
 
 export const MealSummary: React.FC<MealSummaryProps> = ({ data }) => {
-  // 더미 데이터 (백엔드 연동 전까지 사용)
-  const summaryData = data || {
+  const { summaryData: storeData, fetchMealSummary, isLoading } = useMealStore();
+  
+  // 컴포넌트 마운트 시 데이터 가져오기
+  useEffect(() => {
+    if (!storeData) {
+      fetchMealSummary();
+    }
+  }, [storeData, fetchMealSummary]);
+
+  // 우선순위: props > store > 더미 데이터
+  const summaryData = data || storeData || {
     participationCount: 12,
     savingsAmount: 47500,
   };

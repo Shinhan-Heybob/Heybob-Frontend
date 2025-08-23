@@ -2,7 +2,7 @@ import { Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
-import type { TimeSlot } from '../../model/mealCreateStore';
+import type { SelectedTimeSlot, TimeSlotData } from '../../model/mealCreateStore';
 
 export const AvailableTimeSlots: React.FC = () => {
   const { 
@@ -10,15 +10,32 @@ export const AvailableTimeSlots: React.FC = () => {
     selectedTimeSlot,
     setSelectedTimeSlot,
     isLoadingTimeSlots,
-    selectedFriends 
+    selectedFriends,
+    selectedDate
   } = useMealCreateStore();
+
+  // 날짜가 선택되지 않은 경우
+  if (!selectedDate) {
+    return (
+      <View style={styles.container}>
+        <Text variant="body" style={styles.sectionTitle}>
+          가능한 시간대
+        </Text>
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>
+            날짜를 선택하면 공강 시간을 확인할 수 있어요
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   // 친구가 선택되지 않은 경우
   if (selectedFriends.length === 0) {
     return (
       <View style={styles.container}>
         <Text variant="body" style={styles.sectionTitle}>
-          공강 시간대
+          가능한 시간대
         </Text>
         <View style={styles.placeholderContainer}>
           <Text style={styles.placeholderText}>
@@ -34,7 +51,7 @@ export const AvailableTimeSlots: React.FC = () => {
     return (
       <View style={styles.container}>
         <Text variant="body" style={styles.sectionTitle}>
-          공강 시간대 확인 중...
+          가능한 시간대
         </Text>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3B82F6" />
@@ -51,11 +68,11 @@ export const AvailableTimeSlots: React.FC = () => {
     return (
       <View style={styles.container}>
         <Text variant="body" style={styles.sectionTitle}>
-          공강 시간대
+          가능한 시간대
         </Text>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
-            😢 선택한 날짜에 전원이 공강인 시간이 없어요
+            😢 선택한 날짜에 공강인 시간이 없어요
           </Text>
           <Text style={styles.emptySubText}>
             다른 날짜를 선택해보세요
@@ -65,48 +82,60 @@ export const AvailableTimeSlots: React.FC = () => {
     );
   }
 
-  const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
-    setSelectedTimeSlot(timeSlot);
+  const handleTimeSlotSelect = (timeSlotData: TimeSlotData) => {
+    const selectedSlot: SelectedTimeSlot = {
+      time: timeSlotData.time,
+      dayOfWeek: selectedDate?.dayOfWeek || '',
+    };
+    setSelectedTimeSlot(selectedSlot);
   };
 
   return (
     <View style={styles.container}>
       <Text variant="body" style={styles.sectionTitle}>
-        공강 시간대 ({availableTimeSlots.length}개)
+        가능한 시간대
       </Text>
       
       <View style={styles.timeSlotsContainer}>
         {availableTimeSlots.map((timeSlot, index) => {
           const isSelected = selectedTimeSlot?.time === timeSlot.time;
+          const isAllAvailable = timeSlot.isAllAvailable;
           
           return (
-            <View key={index} style={styles.timeSlotRow}>
-              <View style={styles.timeSlotInfo}>
-                <Text style={styles.timeSlotTime}>
-                  {timeSlot.time}
-                </Text>
-                <View style={styles.timeSlotDetails}>
-                  <Text style={styles.timeSlotDay}>
-                    {timeSlot.dayOfWeek}
-                  </Text>
-                  <Text style={styles.timeSlotStatus}>
-                    전원 공강
-                  </Text>
-                </View>
+            <View key={index} style={[
+              styles.timeSlotRow,
+              isAllAvailable && styles.timeSlotRowSelectable,
+              isSelected && styles.timeSlotRowSelected
+            ]}>
+              {/* 시간 표시 */}
+              <Text style={styles.timeText}>
+                {timeSlot.time}
+              </Text>
+              
+              {/* 참여 가능한 친구들 */}
+              <View style={styles.friendsContainer}>
+                {timeSlot.availableFriends.map((friendName, friendIndex) => (
+                  <View key={friendIndex} style={styles.friendTag}>
+                    <Text style={styles.friendTagText}>
+                      {friendName}
+                    </Text>
+                  </View>
+                ))}
               </View>
               
+              {/* 추가 버튼 - 항상 활성화 */}
               <TouchableOpacity
                 style={[
-                  styles.selectButton,
-                  isSelected && styles.selectButtonSelected
+                  styles.addButton,
+                  isSelected && styles.addButtonSelected
                 ]}
                 onPress={() => handleTimeSlotSelect(timeSlot)}
               >
                 <Text style={[
-                  styles.selectButtonText,
-                  isSelected && styles.selectButtonTextSelected
+                  styles.addButtonText,
+                  isSelected && styles.addButtonTextSelected
                 ]}>
-                  {isSelected ? '선택됨' : '선택'}
+                  + 선택
                 </Text>
               </TouchableOpacity>
             </View>
@@ -123,9 +152,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#374151',
+    color: '#9CA3AF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
   },
   loadingContainer: {
@@ -190,65 +219,71 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   timeSlotsContainer: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 8,
   },
   timeSlotRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#E5E7EB', // 기본 회색 배경
+    borderRadius: 16,
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    minHeight: 60,
   },
-  timeSlotInfo: {
-    flex: 1,
+  timeSlotRowSelectable: {
+    backgroundColor: '#C7D2FE', // 전원 공강시 연보라 배경
   },
-  timeSlotTime: {
+  timeSlotRowSelected: {
+    backgroundColor: '#A5B4FC', // 선택됨 상태
+  },
+  timeText: {
     color: '#111827',
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '700',
+    minWidth: 60,
+    marginRight: 16,
   },
-  timeSlotDetails: {
+  friendsContainer: {
+    flex: 1,
     flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginRight: 12,
   },
-  timeSlotDay: {
-    color: '#6B7280',
-    fontSize: 14,
-    marginRight: 8,
+  friendTag: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  timeSlotStatus: {
-    color: '#10B981',
+  friendTagText: {
+    color: '#374151',
     fontSize: 14,
     fontWeight: '500',
   },
-  selectButton: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
+  addButton: {
+    backgroundColor: '#6366F1',
     borderRadius: 20,
-    minWidth: 80,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 70,
     alignItems: 'center',
   },
-  selectButtonSelected: {
-    backgroundColor: '#3B82F6',
+  addButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+    opacity: 0.6,
   },
-  selectButtonText: {
-    color: '#374151',
+  addButtonSelected: {
+    backgroundColor: '#4F46E5',
+  },
+  addButtonText: {
+    color: 'white',
     fontSize: 14,
     fontWeight: '600',
   },
-  selectButtonTextSelected: {
+  addButtonTextDisabled: {
+    color: '#F3F4F6',
+  },
+  addButtonTextSelected: {
     color: 'white',
   },
 });

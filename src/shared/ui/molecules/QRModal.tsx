@@ -1,8 +1,10 @@
-import React from 'react';
-import { Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
-import { Text, Button } from '@/src/shared/ui';
+import { getAvatarById } from '@/src/shared/data/avatars';
 import { User } from '@/src/shared/types/auth';
+import { Button, Text } from '@/src/shared/ui';
+import { Image } from 'expo-image';
+import React from 'react';
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 
 interface StudentQRData {
   studentId: string;
@@ -33,6 +35,13 @@ const generateQRData = (user: User): string => {
 
 export const QRModal: React.FC<QRModalProps> = ({ visible, user, onClose }) => {
   const qrData = generateQRData(user);
+  const avatarImage = getAvatarById(user.avatarId);
+
+  // 한글명만 추출 (괄호 앞 부분)
+  const getKoreanName = (fullName: string) => {
+    const koreanName = fullName.split(' (')[0];
+    return koreanName;
+  };
 
   return (
     <Modal visible={visible} transparent animationType="fade">
@@ -42,46 +51,62 @@ export const QRModal: React.FC<QRModalProps> = ({ visible, user, onClose }) => {
         onPress={onClose}
       >
         <View style={styles.container}>
-          {/* 제목 */}
-          <Text variant="title" style={styles.title}>
-            디지털 학생증
-          </Text>
-          
-          {/* QR 코드 */}
-          <View style={styles.qrContainer}>
-            <QRCode
-              value={qrData}
-              size={200}
-              backgroundColor="white"
-              color="black"
-              enableLinearGradient={false}
+          <View style={styles.card}>
+            {/* 학생증 정보 섹션 */}
+            <View style={styles.studentCardSection}>
+              {/* 카드 헤더 */}
+              <View style={styles.cardHeader}>
+                <Text variant="body" style={styles.cardTitle}>
+                  모바일 학생증
+                </Text>
+              </View>
+
+              {/* 학생 정보 */}
+              <View style={styles.studentInfo}>
+                {/* 아바타 */}
+                <View style={styles.avatarContainer}>
+                  <Image
+                    source={avatarImage}
+                    style={styles.avatar}
+                    contentFit="contain"
+                  />
+                </View>
+
+                {/* 정보 텍스트 */}
+                <View style={styles.infoContainer}>
+                  <Text variant="body" style={styles.schoolInfo}>
+                    {getKoreanName(user.school.name)} / {getKoreanName(user.department.name)}
+                  </Text>
+                  <Text variant="title" style={styles.nameInfo}>
+                    {user.name}({user.studentId})
+                  </Text>
+                </View>
+              </View>
+            </View>
+            
+            {/* QR 코드 */}
+            <View style={styles.qrContainer}>
+              <QRCode
+                value={qrData}
+                size={200}
+                backgroundColor="white"
+                color="black"
+                enableLinearGradient={false}
+              />
+            </View>
+            
+            {/* 유효시간 안내 */}
+            <Text variant="caption" style={styles.validityText}>
+              ⏰ 5분간 유효합니다
+            </Text>
+            
+            {/* 닫기 버튼 */}
+            <Button
+              title="닫기"
+              onPress={onClose}
+              style={styles.closeButton}
             />
           </View>
-          
-          {/* 사용자 정보 */}
-          <View style={styles.userInfo}>
-            <Text variant="body" style={styles.userName}>
-              {user.name}
-            </Text>
-            <Text variant="caption" style={styles.userDetails}>
-              {user.studentId} | {user.school.name}
-            </Text>
-            <Text variant="caption" style={styles.userDetails}>
-              {user.department.name}
-            </Text>
-          </View>
-          
-          {/* 유효시간 안내 */}
-          <Text variant="caption" style={styles.validityText}>
-            ⏰ 5분간 유효합니다
-          </Text>
-          
-          {/* 닫기 버튼 */}
-          <Button
-            title="닫기"
-            onPress={onClose}
-            style={styles.closeButton}
-          />
         </View>
       </TouchableOpacity>
     </Modal>
@@ -94,20 +119,71 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
   },
   container: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(120,127,239,0.90)',
     borderRadius: 20,
-    padding: 32,
+    padding: 20,
     alignItems: 'center',
-    maxWidth: 320,
+    maxWidth: 340,
     width: '100%',
   },
-  title: {
-    marginBottom: 24,
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  studentCardSection: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  cardHeader: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  studentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  avatarContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  schoolInfo: {
+    color: '#6B7280',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  nameInfo: {
     color: '#111827',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
   },
   qrContainer: {
@@ -115,6 +191,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -123,22 +200,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  userInfo: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  userName: {
-    color: '#111827',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  userDetails: {
-    color: '#6B7280',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
   },
   validityText: {
     color: '#EF4444',

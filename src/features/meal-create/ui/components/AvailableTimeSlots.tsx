@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { TimeSlot } from '../../model/mealCreateStore';
 
 export const AvailableTimeSlots: React.FC = () => {
@@ -22,7 +22,7 @@ export const AvailableTimeSlots: React.FC = () => {
         </Text>
         <View style={styles.placeholderContainer}>
           <Text style={styles.placeholderText}>
-            👥 친구를 선택하면 공강 시간을 확인할 수 있어요
+            친구를 선택하면 공강 시간을 확인할 수 있어요
           </Text>
         </View>
       </View>

@@ -32,12 +32,13 @@ export default function RootLayout() {
     setTimeout(() => {
       const inAuthGroup = segments[0] === '(auth)';
       const inMainGroup = segments[0] === '(main)';
+      const inMealsGroup = segments[0] === 'meals'; // 🆕 meals 그룹 추가
 
       if (!isAuthenticated && !inAuthGroup) {
         // 인증 안됨 → 로그인으로
         router.replace('/(auth)/sign-in');
-      } else if (isAuthenticated && !inMainGroup) {
-        // 인증됨 → 메인으로
+      } else if (isAuthenticated && !inMainGroup && !inMealsGroup) {
+        // 인증됨 + main도 meals도 아님 → 메인으로
         router.replace('/(main)');
       }
     }, 100);
@@ -63,6 +64,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(main)" />
+        <Stack.Screen name="meals" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

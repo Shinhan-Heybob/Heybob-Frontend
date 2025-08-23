@@ -1,15 +1,18 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Button } from '@/src/shared/ui';
+import { Button, Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
-import { StepProgress } from './components/StepProgress';
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { AvailableTimeSlots } from './components/AvailableTimeSlots';
 import { DateSelector } from './components/DateSelector';
 import { FriendSearchButton } from './components/FriendSearchButton';
 import { SelectedFriendsList } from './components/SelectedFriendsList';
-import { AvailableTimeSlots } from './components/AvailableTimeSlots';
+import { StepProgress } from './components/StepProgress';
 
 export const MealCreateScreen: React.FC = () => {
+  // console.log('MealCreateScreen 렌더링 시작');
+  
   const { selectedTimeSlot, selectedFriends } = useMealCreateStore();
+  // console.log('Store 데이터:', { selectedTimeSlot, selectedFriends });
 
   // 밥약 만들러 가기 버튼 활성화 조건
   const isCreateButtonEnabled = selectedTimeSlot !== null;
@@ -45,11 +48,13 @@ export const MealCreateScreen: React.FC = () => {
         {/* 친구 검색 버튼 */}
         <FriendSearchButton />
 
+
         {/* 선택된 친구들 목록 */}
         {selectedFriends.length > 0 && <SelectedFriendsList />}
 
         {/* 공강 시간대 표시 */}
         <AvailableTimeSlots />
+        
       </ScrollView>
 
       {/* 하단 고정 버튼 */}

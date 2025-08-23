@@ -9,11 +9,17 @@ export interface Friend {
   avatarId: string;
 }
 
-// 시간대 정보 타입
-export interface TimeSlot {
-  time: string;        // "11:00"
-  dayOfWeek: string;   // "월요일"
-  available: boolean;  // 전원 공강 여부
+// 시간대 정보 타입 (백엔드 데이터 구조)
+export interface TimeSlotData {
+  time: string;                    // "11:30"
+  availableFriends: string[];      // ["이예린(23)", "헤이영(25)"]
+  isAllAvailable: boolean;         // 전원 공강 여부
+}
+
+// 선택된 시간대 타입
+export interface SelectedTimeSlot {
+  time: string;
+  dayOfWeek: string;
 }
 
 // 선택된 날짜 타입
@@ -30,10 +36,10 @@ interface MealCreateState {
   selectedFriends: Friend[];
   
   // 공강 시간대 목록
-  availableTimeSlots: TimeSlot[];
+  availableTimeSlots: TimeSlotData[];
   
   // 선택된 시간대
-  selectedTimeSlot: TimeSlot | null;
+  selectedTimeSlot: SelectedTimeSlot | null;
   
   // 로딩 상태
   isLoadingTimeSlots: boolean;
@@ -55,7 +61,7 @@ interface MealCreateActions {
   fetchAvailableTimeSlots: () => Promise<void>;
   
   // 시간대 선택
-  setSelectedTimeSlot: (timeSlot: TimeSlot) => void;
+  setSelectedTimeSlot: (timeSlot: SelectedTimeSlot) => void;
   
   // 초기화
   resetMealCreate: () => void;
@@ -167,15 +173,43 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
       // 임시 더미 데이터 (API 연동 전까지 사용)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const dummyTimeSlots: TimeSlot[] = [
-        { time: '11:00', dayOfWeek: selectedDate.dayOfWeek, available: true },
-        { time: '12:00', dayOfWeek: selectedDate.dayOfWeek, available: true },
-        { time: '12:30', dayOfWeek: selectedDate.dayOfWeek, available: true },
-        { time: '13:00', dayOfWeek: selectedDate.dayOfWeek, available: false },
-        { time: '13:30', dayOfWeek: selectedDate.dayOfWeek, available: false },
-        { time: '14:00', dayOfWeek: selectedDate.dayOfWeek, available: true },
-        { time: '14:30', dayOfWeek: selectedDate.dayOfWeek, available: true },
-      ].filter(slot => slot.available); // 공강시간만 필터링
+      // 선택된 친구 이름 목록
+      const selectedFriendNames = selectedFriends.map(f => f.name);
+      
+      // 더미 시간표 데이터 (실제로는 API에서 받아올 데이터)
+      const allTimeSlots = [
+        { time: '11:30', availableFriends: ['지예은', '박재준'] },
+        { time: '12:00', availableFriends: ['지예은', '박재준', '김민수'] },
+        { time: '12:30', availableFriends: ['지예은', '박재준'] },
+        { time: '13:00', availableFriends: ['김민수'] },
+        { time: '13:30', availableFriends: ['이수현'] },
+        { time: '14:00', availableFriends: ['지예은', '박재준', '김민수'] },
+        { time: '14:30', availableFriends: ['지예은', '박재준', '김민수'] },
+        { time: '15:00', availableFriends: ['지예은', '이수현'] },
+      ];
+      
+      // 선택된 친구 중 적어도 한 명이 공강인 시간대만 필터링
+      const relevantTimeSlots = allTimeSlots
+        .filter(slot => 
+          slot.availableFriends.some(friendName => selectedFriendNames.includes(friendName))
+        )
+        .map(slot => {
+          // 실제로 선택된 친구 중 공강인 친구들만 표시
+          const availableFriends = slot.availableFriends.filter(friendName => 
+            selectedFriendNames.includes(friendName)
+          );
+          
+          // 선택된 친구 전원이 공강인지 확인
+          const isAllAvailable = availableFriends.length === selectedFriends.length;
+          
+          return {
+            time: slot.time,
+            availableFriends,
+            isAllAvailable
+          };
+        });
+      
+      const dummyTimeSlots: TimeSlotData[] = relevantTimeSlots;
       
       set({ 
         availableTimeSlots: dummyTimeSlots,
@@ -190,7 +224,7 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
   },
 
   // 시간대 선택
-  setSelectedTimeSlot: (timeSlot: TimeSlot) => {
+  setSelectedTimeSlot: (timeSlot: SelectedTimeSlot) => {
     set({ selectedTimeSlot: timeSlot });
   },
 

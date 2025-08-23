@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   container: {
-    backgroundColor: 'rgba(120,127,239,0.90)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     alignItems: 'center',
@@ -134,14 +134,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     width: '100%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    // shadowColor: '#000',
+    // shadowOffset: {
+    //   width: 0,
+    //   height: 4,
+    // },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 8,
+    // elevation: 4,
+    borderWidth:1,
+    borderColor:'#E5E7EB'
   },
   studentCardSection: {
     width: '100%',

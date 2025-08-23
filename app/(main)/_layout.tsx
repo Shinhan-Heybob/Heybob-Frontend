@@ -12,7 +12,6 @@ export default function MainLayout() {
         }}
       >
         <Stack.Screen name="index" />
-        <Stack.Screen name="profile" />
       </Stack>
     </>
   );

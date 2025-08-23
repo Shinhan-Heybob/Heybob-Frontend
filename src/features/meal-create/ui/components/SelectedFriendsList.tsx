@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text } from '@/src/shared/ui';
-import { Image } from 'expo-image';
-import { useMealCreateStore } from '@/src/store';
 import { getAvatarById } from '@/src/shared/data/avatars';
+import { Text } from '@/src/shared/ui';
+import { useMealCreateStore } from '@/src/store';
+import { Image } from 'expo-image';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export const SelectedFriendsList: React.FC = () => {
   const { selectedFriends, removeFriend } = useMealCreateStore();

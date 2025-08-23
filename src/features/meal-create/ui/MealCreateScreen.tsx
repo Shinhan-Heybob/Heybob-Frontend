@@ -1,7 +1,8 @@
 import { Button, Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
+import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AvailableTimeSlots } from './components/AvailableTimeSlots';
 import { DateSelector } from './components/DateSelector';
 import { FriendSearchButton } from './components/FriendSearchButton';
@@ -23,14 +24,23 @@ export const MealCreateScreen: React.FC = () => {
     // TODO: 2단계로 이동
     console.log('밥약 만들러 가기 - 2단계로 이동');
   };
-
+  const handleBackToCreateMeal = () => {
+    router.back();
+  };
   return (
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
+                <TouchableOpacity 
+                  style={styles.backButton}
+                  onPress={handleBackToCreateMeal}
+                >
+                  <Text style={styles.backButtonText}>‹</Text>
+                </TouchableOpacity>
         <Text variant="title" style={styles.headerTitle}>
           밥약 만들기
         </Text>
+        <View style={styles.placeholder} />
       </View>
 
       {/* 스크롤 가능한 콘텐츠 */}
@@ -78,7 +88,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  header: {
+    header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
@@ -91,6 +104,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     textAlign: 'center',
+  },
+   placeholder: {
+    width: 40,
+  },
+    backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#374151',
+    fontWeight: '300',
   },
   scrollView: {
     flex: 1,

@@ -246,14 +246,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 5,
     marginRight: 12,
   },
   friendTag: {
     backgroundColor: 'white',
     borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   friendTagText: {
     color: '#374151',
@@ -263,8 +263,8 @@ const styles = StyleSheet.create({
   addButton: {
     backgroundColor: '#6366F1',
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     minWidth: 70,
     alignItems: 'center',
   },

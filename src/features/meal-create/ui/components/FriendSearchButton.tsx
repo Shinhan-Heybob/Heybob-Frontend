@@ -14,9 +14,8 @@ const SearchIcon: React.FC<{ color?: string }> = ({ color = '#B8B8B8' }) => (
 
 export const FriendSearchButton: React.FC = () => {
   const handleFriendSearch = () => {
-    // TODO: 친구 찾기 페이지 구현 후 활성화
-    console.log('친구 찾기 버튼 클릭 - 페이지 구현 예정');
-    // router.push('/meals/create/find-friends');
+    // 친구 찾기 페이지로 이동
+    router.push('/meals/create/find-friends');
   };
 
   return (

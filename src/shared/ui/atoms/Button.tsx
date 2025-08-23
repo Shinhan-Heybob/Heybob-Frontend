@@ -32,7 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
         style={[
           styles.text,
           variant === 'primary' ? styles.primaryText : styles.secondaryText,
-          disabled && styles.disabledText,
+          disabled && variant === 'secondary' && styles.disabledText,
         ]}
       >
         {title}

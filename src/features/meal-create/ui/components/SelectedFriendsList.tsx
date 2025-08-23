@@ -19,11 +19,15 @@ export const SelectedFriendsList: React.FC = () => {
       </Text>
       
       <View style={styles.friendsList}>
-        {selectedFriends.map((friend) => {
+        {selectedFriends.map((friend, index) => {
           const avatarImage = getAvatarById(friend.avatarId);
+          const isLastItem = index === selectedFriends.length - 1;
           
           return (
-            <View key={friend.id} style={styles.friendItem}>
+            <View key={friend.id} style={[
+              styles.friendItem,
+              isLastItem && styles.friendItemLast
+            ]}>
               {/* 아바타 */}
               <View style={styles.avatarContainer}>
                 <Image
@@ -35,11 +39,11 @@ export const SelectedFriendsList: React.FC = () => {
               
               {/* 친구 정보 */}
               <View style={styles.friendInfo}>
-                <Text variant="body" style={styles.friendName}>
-                  {friend.name}
-                </Text>
                 <Text variant="caption" style={styles.friendDetails}>
                   {friend.department} ({friend.studentId})
+                </Text>
+                <Text variant="body" style={styles.friendName}>
+                  {friend.name}
                 </Text>
               </View>
               
@@ -88,6 +92,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
+  },
+  friendItemLast: {
+    borderBottomWidth: 0,
   },
   avatarContainer: {
     width: 50,

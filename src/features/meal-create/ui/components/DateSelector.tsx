@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Text, Button } from '@/src/shared/ui';
 import { Calendar } from 'react-native-calendars';
+import { Image } from 'expo-image';
 import { useMealCreateStore } from '@/src/store';
 
 export const DateSelector: React.FC = () => {
@@ -46,7 +47,11 @@ export const DateSelector: React.FC = () => {
         onPress={() => setShowCalendar(true)}
       >
         <View style={styles.dateButtonContent}>
-          <Text style={styles.calendarIcon}>📅</Text>
+          <Image
+            source={require('@/assets/images/icons/calendar.png')}
+            style={styles.calendarIcon}
+            contentFit="contain"
+          />
           <Text style={styles.dateButtonText}>
             {selectedDate 
               ? `${formatSelectedDate(selectedDate.date)} (${selectedDate.dayOfWeek})`
@@ -138,7 +143,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   calendarIcon: {
-    fontSize: 20,
+    width: 20,
+    height: 20,
     marginRight: 12,
   },
   dateButtonText: {

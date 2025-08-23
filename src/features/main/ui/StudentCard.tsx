@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { getAvatarById } from '@/src/shared/data/avatars';
+import { Text } from '@/src/shared/ui';
+import { QRModal } from '@/src/shared/ui/molecules/QRModal';
+import { useAuthStore } from '@/src/store';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text } from '@/src/shared/ui';
-import { useAuthStore } from '@/src/store';
-import { getAvatarById } from '@/src/shared/data/avatars';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export const StudentCard: React.FC = () => {
   const { user } = useAuthStore();
@@ -67,14 +68,12 @@ export const StudentCard: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* QR 모달은 나중에 추가 */}
-      {/* {showQR && (
-        <QRModal
-          visible={showQR}
-          user={user}
-          onClose={() => setShowQR(false)}
-        />
-      )} */}
+      {/* QR 모달 */}
+      <QRModal
+        visible={showQR}
+        user={user}
+        onClose={() => setShowQR(false)}
+      />
     </LinearGradient>
   );
 };

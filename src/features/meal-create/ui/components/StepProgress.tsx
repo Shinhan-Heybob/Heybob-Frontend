@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { Text } from '@/src/shared/ui';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 interface StepProgressProps {
   currentStep: number;
@@ -82,10 +82,13 @@ const styles = StyleSheet.create({
   stepLine: {
     width: 60,
     height: 2,
-    backgroundColor: '#E5E7EB',
     marginHorizontal: 8,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: 'transparent',
   },
   stepLineCompleted: {
-    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
 });

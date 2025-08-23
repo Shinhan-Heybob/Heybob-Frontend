@@ -9,14 +9,14 @@ export const DateSelector: React.FC = () => {
   const { selectedDate, setSelectedDate } = useMealCreateStore();
   const [showCalendar, setShowCalendar] = useState(false);
 
-  // 오늘 날짜 계산
-  const today = new Date().toISOString().split('T')[0];
+  // 오늘 날짜 계산 (로컬 시간대 기준)
+  const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD 형식
 
   // 선택 가능한 최소 날짜 (오늘)
   const minDate = today;
 
-  // 선택 가능한 최대 날짜 (30일 후)
-  const maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  // 선택 가능한 최대 날짜 제한 없음
+  const maxDate = undefined;
 
   const handleDateSelect = (day: any) => {
     const selectedDateObj = new Date(day.dateString);

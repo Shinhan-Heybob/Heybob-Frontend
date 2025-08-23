@@ -15,13 +15,19 @@ export const StudentCard: React.FC = () => {
 
   const avatarImage = getAvatarById(user.avatarId);
 
+  // 한글명만 추출 (괄호 앞 부분)
+  const getKoreanName = (fullName: string) => {
+    const koreanName = fullName.split(' (')[0];
+    return koreanName;
+  };
+
   const handleQRPress = () => {
     setShowQR(true);
   };
 
   return (
     <LinearGradient
-      colors={['#8B7ED8', '#9F8CE8']}
+      colors={['#787FEF', '#787FEF']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradientContainer}
@@ -48,7 +54,7 @@ export const StudentCard: React.FC = () => {
           {/* 정보 텍스트 */}
           <View style={styles.infoContainer}>
             <Text variant="body" style={styles.schoolInfo}>
-              {user.school.name} / {user.department.name}
+              {getKoreanName(user.school.name)} / {getKoreanName(user.department.name)}
             </Text>
             <Text variant="title" style={styles.nameInfo}>
               {user.name}({user.studentId})
@@ -62,9 +68,16 @@ export const StudentCard: React.FC = () => {
           onPress={handleQRPress}
           activeOpacity={0.8}
         >
-          <Text variant="body" style={styles.qrButtonText}>
-            📱 QR
-          </Text>
+          <View style={styles.qrButtonContent}>
+            <Image
+              source={require('@/assets/images/icons/qr.png')}
+              style={styles.qrIcon}
+              contentFit="contain"
+            />
+            <Text variant="body" style={styles.qrButtonText}>
+              QR
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -143,6 +156,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+  },
+  qrButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  qrIcon: {
+    width: 20,
+    height: 20,
+    tintColor: 'white',
   },
   qrButtonText: {
     color: 'white',

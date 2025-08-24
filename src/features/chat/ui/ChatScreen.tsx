@@ -85,25 +85,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   // 결제 버튼 클릭
   const handlePaymentPress = (message: ChatMessage) => {
-    Alert.alert(
-      '결제 확인',
-      `${message.amount?.toLocaleString()}원을 송금하시겠습니까?`,
-      [
-        { text: '취소', style: 'cancel' },
-        { 
-          text: '송금하기', 
-          onPress: () => {
-            // TODO: 실제 결제 API 호출
-            console.log('결제 처리:', message.amount);
+    if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
+      Alert.alert(
+        '결제 확인',
+        `${message.paymentRequestData.requestAmount.toLocaleString()}원을 송금하시겠습니까?`,
+        [
+          { text: '취소', style: 'cancel' },
+          { 
+            text: '송금하기', 
+            onPress: () => {
+              // TODO: 실제 결제 API 호출
+              console.log('결제 처리:', message.paymentRequestData?.requestAmount);
+            }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
   };
 
   // 뒤로가기
   const handleBackPress = () => {
-    router.back();
+    router.replace('/(main)');
   };
 
   // 밥약 정보 보기

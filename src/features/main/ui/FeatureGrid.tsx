@@ -66,7 +66,13 @@ const FEATURES: FeatureItem[] = [
 
 export const FeatureGrid: React.FC = () => {
   const handleFeaturePress = (route: string) => {
-    // 임시로 알림만 표시 (실제 페이지들은 나중에 구현)
+    // 밥약 만들기는 실제 페이지로 이동
+    if (route === '/meals/create') {
+      router.push(route);
+      return;
+    }
+    
+    // 나머지는 임시로 알림만 표시 (실제 페이지들은 나중에 구현)
     console.log(`Navigate to: ${route}`);
     // router.push(route); // 페이지 구현 후 활성화
   };

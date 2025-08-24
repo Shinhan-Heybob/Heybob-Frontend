@@ -1,5 +1,5 @@
 import { Client } from '@stomp/stompjs';
-import type { ChatMessage, SendMessageRequest, CurrentUser, ConnectionStatus } from './types';
+import type { ChatMessage, ConnectionStatus, CurrentUser, SendMessageRequest } from './types';
 
 export class ChatWebSocketService {
   private client: Client | null = null;
@@ -10,7 +10,7 @@ export class ChatWebSocketService {
 
   constructor() {
     this.client = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      brokerURL: 'ws://localhost:8081/ws',
       connectHeaders: {},
       debug: (str) => {
         console.log('[STOMP Debug]:', str);

@@ -2,7 +2,7 @@ import { Text } from '@/src/shared/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface ChatHeaderProps {
   roomTitle?: string;
@@ -19,7 +19,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     if (onBackPress) {
       onBackPress();
     } else {
-      router.back();
+      router.replace('/(main)');
     }
   };
 
@@ -48,8 +48,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       {/* 밥약 정보 버튼 */}
       <TouchableOpacity style={styles.mealInfoButton} onPress={handleMealInfoPress}>
         <View style={styles.mealInfoContent}>
-          <Ionicons name="megaphone" size={16} color="#EC4899" />
-          <Text style={styles.mealInfoText}>밥약 정보 보라가기</Text>
+          <Image 
+            source={require('@/assets/images/icons/volume.png')} 
+            style={{ width: 16, height: 16 }} 
+          />
+          <Text style={styles.mealInfoText}>밥약 정보 보러가기</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -86,13 +89,13 @@ const styles = StyleSheet.create({
     height: 4,
   },
   mealInfoButton: {
-    backgroundColor: '#FEF2F2',
+    // backgroundColor: '#FEF2F2',
     borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: '#FECACA',
+    borderWidth: 0.5,
+    borderColor: '#000000ff',
   },
   mealInfoContent: {
     flexDirection: 'row',
@@ -100,7 +103,7 @@ const styles = StyleSheet.create({
   },
   mealInfoText: {
     fontSize: 14,
-    color: '#EC4899',
+    color: 'black',
     fontWeight: '500',
     marginLeft: 6,
   },

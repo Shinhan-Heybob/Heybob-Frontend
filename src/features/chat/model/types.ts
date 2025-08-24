@@ -4,7 +4,6 @@ export type MessageType =
   | 'JOIN'              // 입장 
   | 'LEAVE'             // 퇴장
   | 'PAYMENT_REQUEST'   // 결제 요청
-  | 'PAYMENT_CONFIRM'   // 결제 확인  
   | 'PAYMENT_COMPLETE'; // 결제 완료
 
 // 메시지 인터페이스 (백엔드 응답)
@@ -14,14 +13,28 @@ export interface ChatMessage {
   senderId: string;
   studentId: string;
   senderName: string;
-  profileImageUrl: string;
+  profileImageUrl?: string;
   content: string;
   messageType: MessageType;
   timestamp: string;
   
-  // 금융 메시지 전용 필드 (선택적)
-  amount?: number;
-  paymentId?: string;
+  // 결제 요청 데이터 (PAYMENT_REQUEST 전용)
+  paymentRequestData?: {
+    settlementId: string;
+    roomId: string;
+    requesterName: string;
+    requestAmount: number;
+    settlementUrl: string;
+  };
+  
+  // 결제 완료 데이터 (PAYMENT_COMPLETE 전용)
+  paymentCompleteData?: {
+    settlementId: string;
+    roomId: string;
+    recipientId: string;
+    recipientName: string;
+    completedAmount: number;
+  };
 }
 
 // 메시지 전송 요청 (백엔드로 보내는 데이터)

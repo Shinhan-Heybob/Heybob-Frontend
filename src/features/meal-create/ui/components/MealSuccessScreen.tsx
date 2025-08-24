@@ -18,10 +18,13 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
     }
   };
 
-  const handleGoToChatroom = () => {
-    // TODO: 채팅방으로 이동 또는 메인으로 이동
-    console.log('밥약 채팅방 입장하기');
-    router.back(); // 임시로 뒤로가기
+  const handleGoToMealInfo = () => {
+    // 임시 밥약 ID로 밥약 정보 페이지 이동 (나중에 실제 API 연동 시 수정)
+    const tempMealId = 'meal-123';
+    
+    console.log('밥약 정보 페이지로 이동:', tempMealId);
+    // @ts-ignore
+    router.replace(`/meal/${tempMealId}`);
   };
 
   return (
@@ -62,7 +65,7 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
       <View style={styles.bottomContainer}>
         <Button
           title="밥약 채팅방 입장하기"
-          onPress={handleGoToChatroom}
+          onPress={handleGoToMealInfo}
           style={styles.chatroomButton}
         />
       </View>

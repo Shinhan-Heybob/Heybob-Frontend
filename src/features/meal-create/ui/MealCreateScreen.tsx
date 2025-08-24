@@ -1,19 +1,19 @@
-import { Button, Text } from '@/src/shared/ui';
+import { Button } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
 import { router } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { AvailableTimeSlots } from './components/AvailableTimeSlots';
 import { DateSelector } from './components/DateSelector';
 import { FriendSearchButton } from './components/FriendSearchButton';
+import { MealCreateHeader } from './components/MealCreateHeader';
+import { MealDetailsScreen } from './components/MealDetailsScreen';
 import { SelectedFriendsList } from './components/SelectedFriendsList';
 import { StepProgress } from './components/StepProgress';
 
 export const MealCreateScreen: React.FC = () => {
-  // console.log('MealCreateScreen 렌더링 시작');
-  
+  const [currentStep, setCurrentStep] = useState(1);
   const { selectedTimeSlot, selectedFriends } = useMealCreateStore();
-  // console.log('Store 데이터:', { selectedTimeSlot, selectedFriends });
 
   // 밥약 만들러 가기 버튼 활성화 조건
   const isCreateButtonEnabled = selectedTimeSlot !== null;
@@ -21,27 +21,27 @@ export const MealCreateScreen: React.FC = () => {
   const handleCreateMeal = () => {
     if (!isCreateButtonEnabled) return;
     
-    // TODO: 2단계로 이동
-    console.log('밥약 만들러 가기 - 2단계로 이동');
+    // 2단계로 이동
+    setCurrentStep(2);
   };
+
   const handleBackToCreateMeal = () => {
-    router.back();
+    if (currentStep === 2) {
+      setCurrentStep(1);
+    } else {
+      router.back();
+    }
   };
+  // 2단계인 경우 MealDetailsScreen 렌더링
+  if (currentStep === 2) {
+    return <MealDetailsScreen onBackPress={() => setCurrentStep(1)} />;
+  }
+
+  // 1단계 렌더링
   return (
     <View style={styles.container}>
       {/* 헤더 */}
-      <View style={styles.header}>
-                <TouchableOpacity 
-                  style={styles.backButton}
-                  onPress={handleBackToCreateMeal}
-                >
-                  <Text style={styles.backButtonText}>‹</Text>
-                </TouchableOpacity>
-        <Text variant="title" style={styles.headerTitle}>
-          밥약 만들기
-        </Text>
-        <View style={styles.placeholder} />
-      </View>
+      <MealCreateHeader onBackPress={handleBackToCreateMeal} />
 
       {/* 스크롤 가능한 콘텐츠 */}
       <ScrollView 
@@ -57,7 +57,6 @@ export const MealCreateScreen: React.FC = () => {
 
         {/* 친구 검색 버튼 */}
         <FriendSearchButton />
-
 
         {/* 선택된 친구들 목록 */}
         {selectedFriends.length > 0 && <SelectedFriendsList />}
@@ -88,42 +87,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-    header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
-  },
-   placeholder: {
-    width: 40,
-  },
-    backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#374151',
-    fontWeight: '300',
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // 하단 버튼 공간 확보
+    paddingBottom: 100,
   },
   bottomContainer: {
     position: 'absolute',

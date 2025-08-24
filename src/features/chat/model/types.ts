@@ -1,5 +1,11 @@
 // 메시지 타입
-export type MessageType = 'CHAT' | 'SYSTEM' | 'PAYMENT_REQUEST' | 'PAYMENT_CONFIRM' | 'PAYMENT_COMPLETE';
+export type MessageType = 
+  | 'CHAT'              // 일반 채팅
+  | 'JOIN'              // 입장 
+  | 'LEAVE'             // 퇴장
+  | 'PAYMENT_REQUEST'   // 결제 요청
+  | 'PAYMENT_CONFIRM'   // 결제 확인  
+  | 'PAYMENT_COMPLETE'; // 결제 완료
 
 // 메시지 인터페이스 (백엔드 응답)
 export interface ChatMessage {

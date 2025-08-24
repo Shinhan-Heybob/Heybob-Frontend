@@ -1,11 +1,10 @@
 import { create } from 'zustand';
-import type { 
-  ChatMessage, 
-  CurrentUser, 
-  ConnectionStatus, 
+import type {
+  ChatError,
+  ChatMessage,
   ChatRoom,
-  SendMessageRequest,
-  ChatError 
+  ConnectionStatus,
+  CurrentUser
 } from './types';
 import { chatWebSocketService } from './websocket';
 
@@ -64,7 +63,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ currentRoom: room });
   },
 
-  // WebSocket 연결
+  // WebSocket 연결 (임시 비활성화 - 목 데이터 테스트용)
   connect: (user: CurrentUser, roomId: string) => {
     const state = get();
     
@@ -79,6 +78,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       error: null 
     });
 
+    // 임시: WebSocket 연결 대신 바로 connected 상태로 설정
+    setTimeout(() => {
+      set({ connectionStatus: 'connected' });
+    }, 1000);
+
+    // TODO: 백엔드 준비되면 WebSocket 연결 활성화
+    /*
     // WebSocket 이벤트 핸들러 등록
     chatWebSocketService.onConnectionStatus((status) => {
       set({ connectionStatus: status });
@@ -90,6 +96,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     // 연결 시작
     chatWebSocketService.connect(user, roomId);
+    */
   },
 
   // WebSocket 연결 해제
@@ -98,7 +105,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ connectionStatus: 'disconnected' });
   },
 
-  // 메시지 전송
+  // 메시지 전송 (임시 목 데이터 추가)
   sendMessage: (content: string) => {
     const { currentRoom, currentUser, connectionStatus } = get();
     
@@ -107,6 +114,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
+    // 임시: 로컬에서 메시지 바로 추가
+    const newMessage: ChatMessage = {
+      messageId: 'msg_' + Date.now(),
+      roomId: currentRoom.roomId,
+      senderId: currentUser.userId,
+      studentId: currentUser.studentId,
+      senderName: currentUser.userName,
+      profileImageUrl: currentUser.profileImageUrl || '',
+      content: content.trim(),
+      messageType: 'CHAT',
+      timestamp: new Date().toISOString(),
+    };
+
+    get().addMessage(newMessage);
+
+    // TODO: 백엔드 준비되면 WebSocket으로 전송
+    /*
     const messageData: SendMessageRequest = {
       roomId: currentRoom.roomId,
       content: content.trim(),
@@ -114,6 +138,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     };
 
     chatWebSocketService.sendMessage(messageData);
+    */
   },
 
   // 메시지 추가 (실시간 수신)
@@ -204,10 +229,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
           studentId: '1346671',
           senderName: '이지민',
           profileImageUrl: '',
-          content: '이지민님이 정산하기를 요청했습니다!',
+          content: '이지민님이 정산하기를 요청했습니다.',
           messageType: 'PAYMENT_REQUEST',
           timestamp: new Date(Date.now() - 90000).toISOString(),
-          amount: 12200,
+          paymentRequestData: {
+            settlementId: '66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4',
+            roomId,
+            requesterName: '이지민',
+            requestAmount: 12200,
+            settlementUrl: '/main/settlement/66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4'
+          },
+        },
+        {
+          messageId: 'msg7',
+          roomId,
+          senderId: 'user2',
+          studentId: '2345671',
+          senderName: '김철수',
+          profileImageUrl: '',
+          content: '김철수님이 정산을 완료했습니다.',
+          messageType: 'PAYMENT_COMPLETE',
+          timestamp: new Date(Date.now() - 60000).toISOString(),
+          paymentCompleteData: {
+            settlementId: '66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4',
+            roomId,
+            recipientId: '20000623',
+            recipientName: '김철수',
+            completedAmount: 12200
+          },
         },
       ];
 

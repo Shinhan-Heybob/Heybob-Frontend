@@ -5,7 +5,11 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-export const SelectedFriendsList: React.FC = () => {
+interface SelectedFriendsListProps {
+  readOnly?: boolean;
+}
+
+export const SelectedFriendsList: React.FC<SelectedFriendsListProps> = ({ readOnly = false }) => {
   const { selectedFriends, removeFriend } = useMealCreateStore();
 
   if (selectedFriends.length === 0) {
@@ -47,14 +51,16 @@ export const SelectedFriendsList: React.FC = () => {
                 </Text>
               </View>
               
-              {/* 삭제 버튼 */}
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removeFriend(friend.id)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Text style={styles.removeButtonText}>✕</Text>
-              </TouchableOpacity>
+              {/* 삭제 버튼 - readOnly가 false일 때만 표시 */}
+              {!readOnly && (
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => removeFriend(friend.id)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.removeButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
             </View>
           );
         })}

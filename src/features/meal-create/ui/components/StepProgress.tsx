@@ -7,6 +7,24 @@ interface StepProgressProps {
   totalSteps: number;
 }
 
+const DashedLine: React.FC<{ isCompleted: boolean }> = ({ isCompleted }) => {
+  const dots = Array.from({ length: 8 }, (_, i) => i);
+  
+  return (
+    <View style={styles.dashedContainer}>
+      {dots.map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.dot,
+            isCompleted && styles.dotCompleted
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
+
 export const StepProgress: React.FC<StepProgressProps> = ({ currentStep, totalSteps }) => {
   return (
     <View style={styles.container}>
@@ -34,10 +52,7 @@ export const StepProgress: React.FC<StepProgressProps> = ({ currentStep, totalSt
               
               {/* 연결선 (마지막 단계가 아닐 때만) */}
               {stepNumber < totalSteps && (
-                <View style={[
-                  styles.stepLine,
-                  isCompleted && styles.stepLineCompleted,
-                ]} />
+                <DashedLine isCompleted={isCompleted} />
               )}
             </React.Fragment>
           );
@@ -69,7 +84,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3B82F6',
   },
   stepCircleCompleted: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#3B82F6',
   },
   stepNumber: {
     fontSize: 14,
@@ -79,16 +94,19 @@ const styles = StyleSheet.create({
   stepNumberActive: {
     color: 'white',
   },
-  stepLine: {
+  dashedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     width: 60,
-    height: 2,
     marginHorizontal: 8,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: 'transparent',
   },
-  stepLineCompleted: {
-    borderColor: '#10B981',
+  dot: {
+    width: 3,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dotCompleted: {
+    backgroundColor: '#3B82F6',
   },
 });

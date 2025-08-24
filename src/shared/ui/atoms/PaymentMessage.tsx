@@ -21,11 +21,11 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
   };
 
   const renderPaymentButton = () => {
-    if (message.messageType === 'PAYMENT_REQUEST' && message.amount) {
+    if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
       return (
         <TouchableOpacity style={styles.paymentButton} onPress={handlePaymentPress}>
           <Text style={styles.paymentButtonText}>
-            {message.amount.toLocaleString()}원 송금하기
+            {message.paymentRequestData.requestAmount.toLocaleString()}원 송금하기
           </Text>
         </TouchableOpacity>
       );
@@ -36,11 +36,9 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
   const getMessageText = () => {
     switch (message.messageType) {
       case 'PAYMENT_REQUEST':
-        return message.content; // "이지민님이 정산하기를 요청했습니다!"
-      case 'PAYMENT_CONFIRM':
-        return message.content; // 결제 확인 메시지
+        return message.content; // "이지민님이 요청했습니다."
       case 'PAYMENT_COMPLETE':
-        return message.content; // 결제 완료 메시지
+        return message.content; // "김철수님이 정산을 완료했습니다."
       default:
         return message.content;
     }

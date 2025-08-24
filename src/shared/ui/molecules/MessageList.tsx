@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import { FlatList, StyleSheet, View, RefreshControl } from 'react-native';
-import type { ChatMessage } from '@/src/features/chat/model/types';
 import { getMessageCategory, isMyMessage } from '@/src/features/chat/lib/utils';
+import type { ChatMessage } from '@/src/features/chat/model/types';
+import React, { useEffect, useRef } from 'react';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { MessageBubble } from '../atoms/MessageBubble';
 import { NotificationMessage } from '../atoms/NotificationMessage';
 import { PaymentMessage } from '../atoms/PaymentMessage';

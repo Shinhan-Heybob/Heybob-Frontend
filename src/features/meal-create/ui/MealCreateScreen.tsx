@@ -8,6 +8,7 @@ import { DateSelector } from './components/DateSelector';
 import { FriendSearchButton } from './components/FriendSearchButton';
 import { MealCreateHeader } from './components/MealCreateHeader';
 import { MealDetailsScreen } from './components/MealDetailsScreen';
+import { MealSuccessScreen } from './components/MealSuccessScreen';
 import { SelectedFriendsList } from './components/SelectedFriendsList';
 import { StepProgress } from './components/StepProgress';
 
@@ -28,13 +29,24 @@ export const MealCreateScreen: React.FC = () => {
   const handleBackToCreateMeal = () => {
     if (currentStep === 2) {
       setCurrentStep(1);
+    } else if (currentStep === 3) {
+      setCurrentStep(2);
     } else {
       router.back();
     }
   };
+  
+  // 3단계인 경우 MealSuccessScreen 렌더링
+  if (currentStep === 3) {
+    return <MealSuccessScreen onBackPress={() => setCurrentStep(2)} />;
+  }
+  
   // 2단계인 경우 MealDetailsScreen 렌더링
   if (currentStep === 2) {
-    return <MealDetailsScreen onBackPress={() => setCurrentStep(1)} />;
+    return <MealDetailsScreen 
+      onBackPress={() => setCurrentStep(1)} 
+      onNext={() => setCurrentStep(3)} 
+    />;
   }
 
   // 1단계 렌더링

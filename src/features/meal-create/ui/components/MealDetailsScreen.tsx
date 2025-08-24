@@ -9,9 +9,10 @@ import { StepProgress } from './StepProgress';
 
 interface MealDetailsScreenProps {
   onBackPress?: () => void;
+  onNext?: () => void;
 }
 
-export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPress }) => {
+export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPress, onNext }) => {
   const { selectedDate, selectedTimeSlot, selectedFriends } = useMealCreateStore();
   const [mealName, setMealName] = useState('');
   const [memo, setMemo] = useState('');
@@ -26,9 +27,19 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
   };
 
   const handleCreateMeal = () => {
-    // TODO: 3단계로 이동
-    console.log('밥약 만들기 - 3단계로 이동', { mealName, memo });
+    // 밥약 이름과 메모가 모두 입력되었는지 확인
+    if (!mealName.trim() || !memo.trim()) {
+      return;
+    }
+    
+    // console.log('밥약 만들기 - 3단계로 이동', { mealName, memo });
+    if (onNext) {
+      onNext();
+    }
   };
+
+  // 버튼 활성화 조건
+  const isCreateButtonEnabled = mealName.trim().length > 0 && memo.trim().length > 0;
 
   const handleMealNameFocus = () => {
     setTimeout(() => {
@@ -138,7 +149,11 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
         <Button
           title="밥약 만들기"
           onPress={handleCreateMeal}
-          style={styles.createButton}
+          disabled={!isCreateButtonEnabled}
+          style={[
+            styles.createButton,
+            !isCreateButtonEnabled && styles.createButtonDisabled
+          ]}
         />
       </View>
     </KeyboardAvoidingView>
@@ -224,5 +239,8 @@ const styles = StyleSheet.create({
   },
   createButton: {
     width: '100%',
+  },
+  createButtonDisabled: {
+    opacity: 0.5,
   },
 });

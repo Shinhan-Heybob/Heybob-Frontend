@@ -1,9 +1,9 @@
+import { formatMessageTime } from '@/src/features/chat/lib/utils';
+import type { ChatMessage } from '@/src/features/chat/model/types';
 import { Text } from '@/src/shared/ui';
 import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import type { ChatMessage } from '@/src/features/chat/model/types';
-import { formatMessageTime } from '@/src/features/chat/lib/utils';
 
 interface PaymentMessageProps {
   message: ChatMessage;
@@ -33,10 +33,12 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
     return null;
   };
 
+  const isPaymentComplete = message.messageType === 'PAYMENT_COMPLETE';
+
   const getMessageText = () => {
     switch (message.messageType) {
       case 'PAYMENT_REQUEST':
-        return message.content; // "이지민님이 요청했습니다."
+        return message.content; // "이지민님이 정산하기를 요청했습니다."
       case 'PAYMENT_COMPLETE':
         return message.content; // "김철수님이 정산을 완료했습니다."
       default:
@@ -50,9 +52,9 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
       <View style={styles.myPaymentContainer}>
         <View style={styles.myPaymentContent}>
           <Text style={styles.timestamp}>{formatMessageTime(message.timestamp)}</Text>
-          <View style={styles.myPaymentBubble}>
-            <Text style={styles.myPaymentText}>{getMessageText()}</Text>
-            {renderPaymentButton()}
+          <View style={isPaymentComplete ? styles.myCompleteBubble : styles.myPaymentBubble}>
+            <Text style={isPaymentComplete ? styles.myCompleteText : styles.myPaymentText}>{getMessageText()}</Text>
+            {!isPaymentComplete && renderPaymentButton()}
           </View>
         </View>
       </View>
@@ -81,9 +83,9 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
         </View>
         
         <View style={styles.paymentRow}>
-          <View style={styles.otherPaymentBubble}>
-            <Text style={styles.otherPaymentText}>{getMessageText()}</Text>
-            {renderPaymentButton()}
+          <View style={isPaymentComplete ? styles.otherCompleteBubble : styles.otherPaymentBubble}>
+            <Text style={isPaymentComplete ? styles.otherCompleteText : styles.otherPaymentText}>{getMessageText()}</Text>
+            {!isPaymentComplete && renderPaymentButton()}
           </View>
           <Text style={styles.timestamp}>{formatMessageTime(message.timestamp)}</Text>
         </View>
@@ -117,6 +119,19 @@ const styles = StyleSheet.create({
     color: '#111827',
     lineHeight: 20,
     marginBottom: 8,
+  },
+  myCompleteBubble: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderBottomRightRadius: 6,
+    marginLeft: 8,
+  },
+  myCompleteText: {
+    fontSize: 16,
+    color: 'white',
+    lineHeight: 20,
   },
 
   // 상대방 결제 메시지
@@ -179,7 +194,7 @@ const styles = StyleSheet.create({
   otherPaymentBubble: {
     backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 20,
     borderRadius: 20,
     borderBottomLeftRadius: 6,
     marginRight: 8,
@@ -198,10 +213,23 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 8,
   },
+  otherCompleteBubble: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderBottomLeftRadius: 6,
+    marginRight: 8,
+  },
+  otherCompleteText: {
+    fontSize: 16,
+    color: '#111827',
+    lineHeight: 20,
+  },
 
   // 결제 버튼
   paymentButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#7BBBFB',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,

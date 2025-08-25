@@ -1,6 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingBottom: 24,
+    paddingBottom: 15,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },

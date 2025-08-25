@@ -1,9 +1,9 @@
+import { formatMessageTime } from '@/src/features/chat/lib/utils';
+import type { ChatMessage } from '@/src/features/chat/model/types';
 import { Text } from '@/src/shared/ui';
 import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import type { ChatMessage } from '@/src/features/chat/model/types';
-import { formatMessageTime } from '@/src/features/chat/lib/utils';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     maxWidth: '80%',
+    flexWrap: 'wrap',
   },
   myMessageBubble: {
     backgroundColor: '#E5E7EB',
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   myMessageText: {
     fontSize: 16,
     color: '#111827',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   
   // 상대방 메시지
@@ -148,6 +149,7 @@ const styles = StyleSheet.create({
   messageRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    flexWrap: 'wrap',
   },
   otherMessageBubble: {
     backgroundColor: 'white',
@@ -164,11 +166,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    flexShrink: 1,
   },
   otherMessageText: {
     fontSize: 16,
     color: '#111827',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   
   // 공통

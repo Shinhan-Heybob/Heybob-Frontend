@@ -187,6 +187,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     messageListRef.current?.scrollToEnd({ animated: true });
   };
 
+  // + 버튼 클릭 (1/N 요청하기)
+  const handlePlusButtonPress = () => {
+    // TODO: 1/N 요청 페이지로 라우팅
+    console.log('1/N 요청하기 페이지로 이동');
+  };
+
   return (
     <KeyboardAvoidingView 
       style={styles.container}
@@ -229,6 +235,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           onSendMessage={handleSendMessage}
           placeholder={isConnected ? '메시지 입력...' : '연결 중...'}
           disabled={isInputDisabled}
+          onPlusButtonPress={handlePlusButtonPress}
         />
       </View>
 

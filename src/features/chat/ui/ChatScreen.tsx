@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Alert, KeyboardAvoidingView, Platform, Text } from 'react-native';
-import { useChatStore } from '../model/chatStore';
-import { ChatHeader } from './components/ChatHeader';
-import { MessageList } from '@/src/shared/ui/molecules/MessageList';
 import { MessageInput } from '@/src/shared/ui/atoms/MessageInput';
-import type { ChatMessage, CurrentUser, ChatRoom } from '../model/types';
+import { MessageList } from '@/src/shared/ui/molecules/MessageList';
 import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { useChatStore } from '../model/chatStore';
+import type { ChatMessage, ChatRoom, CurrentUser } from '../model/types';
+import { ChatHeader } from './components/ChatHeader';
 
 interface ChatScreenProps {
   roomId: string;
@@ -18,6 +18,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   currentUser,
   roomInfo,
 }) => {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [hasInteractedWithKeyboard, setHasInteractedWithKeyboard] = useState(false);
+  
   const {
     messages,
     isLoadingMessages,
@@ -32,6 +35,26 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     setCurrentRoom,
     clearError,
   } = useChatStore();
+
+  // 키보드 이벤트 리스너
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+        setHasInteractedWithKeyboard(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
 
   // 채팅방 진입 시 초기화
   useEffect(() => {
@@ -117,6 +140,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const isConnected = connectionStatus === 'connected';
   const isInputDisabled = !isConnected || isLoadingMessages;
 
+  const getInputPadding = () => {
+    if (!hasInteractedWithKeyboard) {
+      return 30; // 처음 입장: 탭바 위 고정
+    }
+    return keyboardVisible ? 0 : 0; // 키보드 사용 경험 후: 항상 0
+  };
+
   return (
     <KeyboardAvoidingView 
       style={styles.container}
@@ -141,11 +171,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       />
 
       {/* 메시지 입력창 */}
-      <MessageInput
-        onSendMessage={handleSendMessage}
-        placeholder={isConnected ? '메시지 입력...' : '연결 중...'}
-        disabled={isInputDisabled}
-      />
+      <View style={[styles.inputWrapper, { paddingBottom: getInputPadding() }]}>
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          placeholder={isConnected ? '메시지 입력...' : '연결 중...'}
+          disabled={isInputDisabled}
+        />
+      </View>
 
       {/* 연결 상태 표시 */}
       {connectionStatus === 'connecting' && (
@@ -189,5 +221,8 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'white',
+  },
+  inputWrapper: {
+    // paddingBottom은 동적으로 적용됨
   },
 });

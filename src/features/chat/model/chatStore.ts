@@ -185,7 +185,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           studentId: '2345671',
           senderName: '이예린',
           profileImageUrl: '',
-          content: '오늘 중식 볶고기겠나?',
+          content: '오늘 중식 불고기랬나?',
           messageType: 'CHAT',
           timestamp: new Date(Date.now() - 240000).toISOString(),
         },

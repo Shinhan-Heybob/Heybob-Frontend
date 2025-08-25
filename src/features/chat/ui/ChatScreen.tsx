@@ -1,8 +1,8 @@
 import { MessageInput } from '@/src/shared/ui/atoms/MessageInput';
 import { MessageList } from '@/src/shared/ui/molecules/MessageList';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useChatStore } from '../model/chatStore';
 import type { ChatMessage, ChatRoom, CurrentUser } from '../model/types';
 import { ChatHeader } from './components/ChatHeader';
@@ -20,6 +20,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 }) => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [hasInteractedWithKeyboard, setHasInteractedWithKeyboard] = useState(false);
+  const messageListRef = useRef<FlatList>(null);
   
   const {
     messages,
@@ -34,6 +35,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     setCurrentUser,
     setCurrentRoom,
     clearError,
+    addMessage,
   } = useChatStore();
 
   // 키보드 이벤트 리스너
@@ -43,6 +45,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       () => {
         setKeyboardVisible(true);
         setHasInteractedWithKeyboard(true);
+        setTimeout(() => scrollToBottom(), 100);
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
@@ -96,6 +99,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   // 메시지 전송
   const handleSendMessage = (content: string) => {
     sendMessage(content);
+    setTimeout(() => scrollToBottom(), 100);
   };
 
   // 더 많은 메시지 로드 (위로 스크롤)
@@ -140,11 +144,40 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const isConnected = connectionStatus === 'connected';
   const isInputDisabled = !isConnected || isLoadingMessages;
 
+  // 자동 스크롤 함수
+  const scrollToBottom = () => {
+    if (messageListRef.current && messages.length > 0) {
+      messageListRef.current.scrollToEnd({ animated: true });
+    }
+  };
+
   const getInputPadding = () => {
     if (!hasInteractedWithKeyboard) {
       return 30; // 처음 입장: 탭바 위 고정
     }
     return keyboardVisible ? 0 : 0; // 키보드 사용 경험 후: 항상 0
+  };
+
+  // 개발용 테스트 함수들
+  const addTestMessage = () => {
+    const testMessage: ChatMessage = {
+      messageId: 'test_' + Date.now(),
+      roomId: roomId,
+      senderId: 'other_user',
+      studentId: '9999999',
+      senderName: '테스트유저',
+      profileImageUrl: '',
+      content: '테스트 메시지입니다 ' + new Date().getSeconds() + '초',
+      messageType: 'CHAT',
+      timestamp: new Date().toISOString(),
+    };
+    addMessage(testMessage);
+  };
+
+  const loadHistoryTest = () => {
+    if (messages.length > 0) {
+      loadMessages(roomId, messages[0]?.messageId);
+    }
   };
 
   return (
@@ -162,6 +195,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       {/* 메시지 리스트 */}
       <MessageList
+        ref={messageListRef}
         messages={messages}
         currentUserId={currentUser.userId}
         isLoading={isLoadingMessages}
@@ -190,6 +224,25 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         <View style={[styles.statusBar, styles.errorBar]}>
           <Text style={[styles.statusText, styles.errorText]}>연결 실패</Text>
         </View>
+      )}
+
+      {/* 개발용 테스트 버튼들 */}
+      {__DEV__ && (
+        <>
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={addTestMessage}
+          >
+            <Text style={styles.testButtonText}>새 메시지</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.testButton, { right: 120 }]}
+            onPress={loadHistoryTest}
+          >
+            <Text style={styles.testButtonText}>히스토리</Text>
+          </TouchableOpacity>
+        </>
       )}
     </KeyboardAvoidingView>
   );
@@ -224,5 +277,20 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     // paddingBottom은 동적으로 적용됨
+  },
+  testButton: {
+    position: 'absolute',
+    top: 100,
+    right: 20,
+    backgroundColor: '#FF4444',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    zIndex: 1000,
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

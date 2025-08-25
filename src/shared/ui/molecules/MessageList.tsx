@@ -1,6 +1,6 @@
 import { getMessageCategory, isMyMessage } from '@/src/features/chat/lib/utils';
 import type { ChatMessage } from '@/src/features/chat/model/types';
-import React, { useEffect, useRef } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { MessageBubble } from '../atoms/MessageBubble';
 import { NotificationMessage } from '../atoms/NotificationMessage';
@@ -15,24 +15,42 @@ interface MessageListProps {
   onPaymentPress?: (message: ChatMessage) => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({
+export const MessageList = forwardRef<FlatList, MessageListProps>(({
   messages,
   currentUserId,
   isLoading = false,
   hasMore = true,
   onLoadMore,
   onPaymentPress,
-}) => {
+}, ref) => {
   const flatListRef = useRef<FlatList>(null);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  // const [contentHeight, setContentHeight] = useState(0);
+  // const [layoutHeight, setLayoutHeight] = useState(0);
 
-  // 새 메시지가 오면 자동으로 스크롤
+  useImperativeHandle(ref, () => flatListRef.current!, []);
+
+  // 스크롤 위치 감지
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const scrollPosition = contentOffset.y;
+    const scrollViewHeight = layoutMeasurement.height;
+    const contentHeight = contentSize.height;
+    
+    // 맨 아래에서 100px 이내면 자동 스크롤 허용
+    const distanceFromBottom = contentHeight - scrollPosition - scrollViewHeight;
+    setIsNearBottom(distanceFromBottom < 100);
+  };
+
+  // 새 메시지가 오면 조건부 자동 스크롤
   useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
+    if (messages.length > 0 && isNearBottom) {
+      // 레이아웃 업데이트 후 스크롤 (더 부드럽게)
+      requestAnimationFrame(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      });
     }
-  }, [messages.length]);
+  }, [messages.length, isNearBottom]);
 
   const renderMessage = ({ item: message }: { item: ChatMessage }) => {
     const category = getMessageCategory(message.messageType);
@@ -83,6 +101,8 @@ export const MessageList: React.FC<MessageListProps> = ({
         showsVerticalScrollIndicator={false}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
@@ -91,18 +111,16 @@ export const MessageList: React.FC<MessageListProps> = ({
           />
         }
         // 성능 최적화
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={20}
         windowSize={10}
-        getItemLayout={(data, index) => ({
-          length: 80, // 대략적인 메시지 높이
-          offset: 80 * index,
-          index,
-        })}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 1,
+        }}
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -114,6 +132,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 16,
-    paddingBottom: 16,
+    paddingBottom: 15, // 인풋창 높이 + 여유 공간
   },
 });

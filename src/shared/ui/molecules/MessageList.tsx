@@ -13,6 +13,8 @@ interface MessageListProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   onPaymentPress?: (message: ChatMessage) => void;
+  onNewMessageReceived?: () => void;
+  onScrollNearBottom?: () => void;
 }
 
 export const MessageList = forwardRef<FlatList, MessageListProps>(({
@@ -22,11 +24,12 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
   hasMore = true,
   onLoadMore,
   onPaymentPress,
+  onNewMessageReceived,
+  onScrollNearBottom,
 }, ref) => {
   const flatListRef = useRef<FlatList>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
-  // const [contentHeight, setContentHeight] = useState(0);
-  // const [layoutHeight, setLayoutHeight] = useState(0);
+  const [previousLatestTimestamp, setPreviousLatestTimestamp] = useState<string>('');
 
   useImperativeHandle(ref, () => flatListRef.current!, []);
 
@@ -39,13 +42,45 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
     
     // 맨 아래에서 100px 이내면 자동 스크롤 허용
     const distanceFromBottom = contentHeight - scrollPosition - scrollViewHeight;
-    setIsNearBottom(distanceFromBottom < 100);
+    const nearBottom = distanceFromBottom < 100;
+    
+    // 사용자가 아래로 스크롤해서 맨 아래 근처에 오면 새 메시지 버튼 숨김
+    if (nearBottom) {
+      onScrollNearBottom?.();
+    }
+    
+    setIsNearBottom(nearBottom);
   };
 
-  // 새 메시지가 오면 조건부 자동 스크롤
+  // 새 메시지가 끝에 추가되면 조건부 자동 스크롤
   useEffect(() => {
-    if (messages.length > 0 && isNearBottom) {
-      // 레이아웃 업데이트 후 스크롤 (더 부드럽게)
+    if (messages.length === 0) return;
+    
+    // 마지막 메시지 확인 (가장 최신 메시지)
+    const lastMessage = messages[messages.length - 1];
+    const isNewMessage = lastMessage.timestamp > previousLatestTimestamp;
+    
+    console.log('📱 MessageList Auto-Scroll Debug:', {
+      messagesLength: messages.length,
+      lastMessageTime: lastMessage.timestamp,
+      previousTime: previousLatestTimestamp,
+      isNewMessage,
+      isNearBottom,
+      shouldScroll: isNewMessage && (isNearBottom || previousLatestTimestamp === '')
+    });
+    
+    // 이전 최신 timestamp 업데이트
+    setPreviousLatestTimestamp(lastMessage.timestamp);
+    
+    // 새 메시지면 콜백 호출 (사용자가 위쪽에 있을 때)
+    if (isNewMessage && !isNearBottom) {
+      console.log('📢 New message received while user is scrolled up');
+      onNewMessageReceived?.();
+    }
+    
+    // 새 메시지이고 사용자가 아래쪽에 있으면 자동 스크롤
+    if (isNewMessage && isNearBottom) {
+      console.log('🚀 Auto scrolling to bottom');
       requestAnimationFrame(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       });

@@ -20,6 +20,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 }) => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [hasInteractedWithKeyboard, setHasInteractedWithKeyboard] = useState(false);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
   const messageListRef = useRef<FlatList>(null);
   
   const {
@@ -180,6 +181,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   };
 
+  // 새 메시지 보기 버튼 클릭
+  const handleNewMessageButtonPress = () => {
+    setHasNewMessage(false);
+    messageListRef.current?.scrollToEnd({ animated: true });
+  };
+
   return (
     <KeyboardAvoidingView 
       style={styles.container}
@@ -202,7 +209,19 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         hasMore={hasMoreMessages}
         onLoadMore={handleLoadMore}
         onPaymentPress={handlePaymentPress}
+        onNewMessageReceived={() => setHasNewMessage(true)}
+        onScrollNearBottom={() => setHasNewMessage(false)}
       />
+
+      {/* 새 메시지 보기 버튼 */}
+      {hasNewMessage && (
+        <TouchableOpacity
+          style={styles.newMessageButton}
+          onPress={handleNewMessageButtonPress}
+        >
+          <Text style={styles.newMessageButtonText}>새 메시지 보기</Text>
+        </TouchableOpacity>
+      )}
 
       {/* 메시지 입력창 */}
       <View style={[styles.inputWrapper, { paddingBottom: getInputPadding() }]}>
@@ -291,6 +310,26 @@ const styles = StyleSheet.create({
   testButtonText: {
     color: 'white',
     fontSize: 12,
+    fontWeight: '600',
+  },
+  newMessageButton: {
+    position: 'absolute',
+    bottom: 100, // 인풋창 위에 위치
+    alignSelf: 'center',
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 999,
+  },
+  newMessageButtonText: {
+    color: 'white',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

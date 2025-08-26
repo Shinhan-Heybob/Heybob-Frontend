@@ -1,3 +1,6 @@
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Text } from '@/src/shared/ui';
+import { useAuthStore } from '@/src/store';
 import {
   DarkTheme,
   DefaultTheme,
@@ -6,14 +9,10 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import 'react-native-reanimated';
 import '../global.css';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Text } from '@/src/shared/ui';
-import { useAuthStore } from '@/src/store';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -32,13 +31,14 @@ export default function RootLayout() {
     setTimeout(() => {
       const inAuthGroup = segments[0] === '(auth)';
       const inMainGroup = segments[0] === '(main)';
-      const inMealsGroup = segments[0] === 'meals'; // 🆕 meals 그룹 추가
+      const inMealsGroup = segments[0] === 'meals';
+      const inTimetableGroup = segments[0] === 'timetable';
 
       if (!isAuthenticated && !inAuthGroup) {
         // 인증 안됨 → 로그인으로
         router.replace('/(auth)/sign-in');
-      } else if (isAuthenticated && !inMainGroup && !inMealsGroup) {
-        // 인증됨 + main도 meals도 아님 → 메인으로
+      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inTimetableGroup) {
+        // 인증됨 + 허용된 그룹에 없음 → 메인으로
         router.replace('/(main)');
       }
     }, 100);
@@ -65,6 +65,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(main)" />
         <Stack.Screen name="meals" />
+        <Stack.Screen name="timetable" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

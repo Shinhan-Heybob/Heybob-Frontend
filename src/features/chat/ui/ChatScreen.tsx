@@ -132,8 +132,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   // 밥약 정보 보기
   const handleMealInfoPress = () => {
-    // TODO: 밥약 정보 페이지로 이동
-    console.log('밥약 정보 보기');
+    // TODO: 실제로는 현재 채팅방과 연결된 mealId를 사용해야 함
+    const mealId = 'meal-123'; // 임시 ID
+    router.push(`/meal-info/${mealId}`);
   };
 
   const isConnected = connectionStatus === 'connected';

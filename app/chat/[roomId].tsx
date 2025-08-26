@@ -1,4 +1,4 @@
-import { ChatScreen } from '@/src/features/chat/ui/ChatScreen';
+import { SharedChatScreen } from '@/src/shared/ui/organisms/ChatScreen';
 import type { CurrentUser } from '@/src/features/chat/model/types';
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -19,9 +19,10 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <ChatScreen
+    <SharedChatScreen
       roomId={roomId}
       currentUser={mockCurrentUser}
+      chatType="meal"
     />
   );
 }

@@ -5,27 +5,27 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-interface PaymentMessageProps {
+interface SavingsMessageProps {
   message: ChatMessage;
   isMyMessage: boolean;
-  onPaymentPress?: (message: ChatMessage) => void;
+  onSavingsPress?: (message: ChatMessage) => void;
 }
 
-export const PaymentMessage: React.FC<PaymentMessageProps> = ({
+export const SavingsMessage: React.FC<SavingsMessageProps> = ({
   message,
   isMyMessage,
-  onPaymentPress,
+  onSavingsPress,
 }) => {
-  const handlePaymentPress = () => {
-    onPaymentPress?.(message);
+  const handleSavingsPress = () => {
+    onSavingsPress?.(message);
   };
 
-  const renderPaymentButton = () => {
-    if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
+  const renderSavingsButton = () => {
+    if (message.messageType === 'SAVINGS_REQUEST' && message.savingsRequestData) {
       return (
-        <TouchableOpacity style={styles.paymentButton} onPress={handlePaymentPress}>
-          <Text style={styles.paymentButtonText}>
-            {message.paymentRequestData.requestAmount.toLocaleString()}원 송금하기
+        <TouchableOpacity style={styles.savingsButton} onPress={handleSavingsPress}>
+          <Text style={styles.savingsButtonText}>
+            {message.savingsRequestData.requestAmount.toLocaleString()}원 모으기
           </Text>
         </TouchableOpacity>
       );
@@ -33,37 +33,37 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
     return null;
   };
 
-  const isPaymentComplete = message.messageType === 'PAYMENT_COMPLETE';
+  const isSavingsComplete = message.messageType === 'SAVINGS_COMPLETE';
 
   const getMessageText = () => {
     switch (message.messageType) {
-      case 'PAYMENT_REQUEST':
-        return message.content; // "이지민님이 정산하기를 요청했습니다."
-      case 'PAYMENT_COMPLETE':
-        return message.content; // "김철수님이 정산을 완료했습니다."
+      case 'SAVINGS_REQUEST':
+        return message.content;
+      case 'SAVINGS_COMPLETE':
+        return message.content;
       default:
         return message.content;
     }
   };
 
   if (isMyMessage) {
-    // 내가 보낸 결제 메시지 (오른쪽 정렬)
+    // 내가 보낸 적금 메시지 (오른쪽 정렬)
     return (
-      <View style={styles.myPaymentContainer}>
-        <View style={styles.myPaymentContent}>
+      <View style={styles.mySavingsContainer}>
+        <View style={styles.mySavingsContent}>
           <Text style={styles.timestamp}>{formatMessageTime(message.timestamp)}</Text>
-          <View style={isPaymentComplete ? styles.myCompleteBubble : styles.myPaymentBubble}>
-            <Text style={isPaymentComplete ? styles.myCompleteText : styles.myPaymentText}>{getMessageText()}</Text>
-            {!isPaymentComplete && renderPaymentButton()}
+          <View style={isSavingsComplete ? styles.myCompleteBubble : styles.mySavingsBubble}>
+            <Text style={isSavingsComplete ? styles.myCompleteText : styles.mySavingsText}>{getMessageText()}</Text>
+            {!isSavingsComplete && renderSavingsButton()}
           </View>
         </View>
       </View>
     );
   }
 
-  // 상대방이 보낸 결제 메시지 (왼쪽 정렬)
+  // 상대방이 보낸 적금 메시지 (왼쪽 정렬)
   return (
-    <View style={styles.otherPaymentContainer}>
+    <View style={styles.otherSavingsContainer}>
       <View style={styles.profileContainer}>
         <View style={styles.avatarContainer}>
           {message.profileImageUrl ? (
@@ -76,16 +76,16 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
         </View>
       </View>
       
-      <View style={styles.paymentContentContainer}>
+      <View style={styles.savingsContentContainer}>
         <View style={styles.senderInfo}>
           <Text style={styles.senderName}>{message.senderName}</Text>
           <Text style={styles.studentId}>({message.studentId})</Text>
         </View>
         
-        <View style={styles.paymentRow}>
-          <View style={isPaymentComplete ? styles.otherCompleteBubble : styles.otherPaymentBubble}>
-            <Text style={isPaymentComplete ? styles.otherCompleteText : styles.otherPaymentText}>{getMessageText()}</Text>
-            {!isPaymentComplete && renderPaymentButton()}
+        <View style={styles.savingsRow}>
+          <View style={isSavingsComplete ? styles.otherCompleteBubble : styles.otherSavingsBubble}>
+            <Text style={isSavingsComplete ? styles.otherCompleteText : styles.otherSavingsText}>{getMessageText()}</Text>
+            {!isSavingsComplete && renderSavingsButton()}
           </View>
           <Text style={styles.timestamp}>{formatMessageTime(message.timestamp)}</Text>
         </View>
@@ -95,18 +95,18 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
 };
 
 const styles = StyleSheet.create({
-  // 내 결제 메시지
-  myPaymentContainer: {
+  // 내 적금 메시지
+  mySavingsContainer: {
     alignItems: 'flex-end',
     marginVertical: 8,
     marginHorizontal: 16,
   },
-  myPaymentContent: {
+  mySavingsContent: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    maxWidth: '100%',
+    maxWidth: '80%',
   },
-  myPaymentBubble: {
+  mySavingsBubble: {
     backgroundColor: '#F3F4F6',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -114,14 +114,14 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 6,
     marginLeft: 8,
   },
-  myPaymentText: {
+  mySavingsText: {
     fontSize: 16,
     color: '#111827',
     lineHeight: 20,
     marginBottom: 8,
   },
   myCompleteBubble: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#10B981',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // 상대방 결제 메시지
-  otherPaymentContainer: {
+  // 상대방 적금 메시지
+  otherSavingsContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginVertical: 8,
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 20,
   },
-  paymentContentContainer: {
+  savingsContentContainer: {
     flex: 1,
     maxWidth: '80%',
   },
@@ -187,11 +187,11 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 4,
   },
-  paymentRow: {
+  savingsRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
-  otherPaymentBubble: {
+  otherSavingsBubble: {
     backgroundColor: 'white',
     paddingHorizontal: 16,
     paddingVertical: 20,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  otherPaymentText: {
+  otherSavingsText: {
     fontSize: 16,
     color: '#111827',
     lineHeight: 20,
@@ -227,17 +227,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // 결제 버튼
-  paymentButton: {
-    backgroundColor: '#7BBBFB',
+  // 적금 버튼 (초록색 계열)
+  savingsButton: {
+    backgroundColor: '#10B981',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
     alignItems: 'center',
-    marginTop: 8,
-    alignSelf: 'stretch',
+    marginTop: 4,
   },
-  paymentButtonText: {
+  savingsButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',

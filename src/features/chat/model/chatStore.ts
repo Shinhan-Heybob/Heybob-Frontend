@@ -4,7 +4,8 @@ import type {
   ChatMessage,
   ChatRoom,
   ConnectionStatus,
-  CurrentUser
+  CurrentUser,
+  SendMessageRequest
 } from './types';
 import { chatWebSocketService } from './websocket';
 
@@ -34,6 +35,8 @@ interface ChatState {
   
   // 메시지 관련
   sendMessage: (content: string) => void;
+  sendTypedMessage: (messageData: SendMessageRequest) => void;
+  sendCafeteriaInfoRequest: () => void;
   addMessage: (message: ChatMessage) => void;
   loadMessages: (roomId: string, before?: string) => Promise<void>;
   
@@ -132,13 +135,69 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // TODO: 백엔드 준비되면 WebSocket으로 전송
     /*
     const messageData: SendMessageRequest = {
-      roomId: currentRoom.roomId,
       content: content.trim(),
       messageType: 'CHAT',
     };
 
-    chatWebSocketService.sendMessage(messageData);
+    chatWebSocketService.sendMessage(messageData, currentRoom.roomId);
     */
+  },
+
+  // 타입별 메시지 전송
+  sendTypedMessage: (messageData: SendMessageRequest) => {
+    const { currentRoom, currentUser, connectionStatus } = get();
+    
+    if (!currentRoom || !currentUser || connectionStatus !== 'connected') {
+      console.error('Cannot send message: not ready');
+      return;
+    }
+
+    // TODO: 백엔드 준비되면 WebSocket으로 전송
+    console.log('Sending typed message:', messageData);
+    /*
+    chatWebSocketService.sendMessage(messageData, currentRoom.roomId);
+    */
+  },
+
+  // 학식 정보 요청
+  sendCafeteriaInfoRequest: () => {
+    const { currentRoom, currentUser, connectionStatus } = get();
+    
+    if (!currentRoom || !currentUser || connectionStatus !== 'connected') {
+      console.error('Cannot send cafeteria info request: not ready');
+      return;
+    }
+
+    // 목 데이터로 학식 정보 메시지 생성
+    const cafeteriaInfoMessage: ChatMessage = {
+      messageId: 'cafeteria_' + Date.now(),
+      roomId: currentRoom.roomId,
+      senderId: 'system_cafeteria_bot',
+      studentId: '',
+      senderName: '학식 정보 봇',
+      profileImageUrl: '',
+      content: `📍 오늘의 학식 정보
+      
+🍽️ 중식 (11:30-14:00)
+• 돈까스 정식 - 4,500원
+• 김치찌개 정식 - 4,000원  
+• 불고기 덮밥 - 4,800원
+
+🍜 석식 (17:30-19:30)
+• 치킨마요 덮밥 - 5,000원
+• 된장찌개 정식 - 3,800원
+• 제육볶음 정식 - 4,500원
+
+📞 문의: 학생식당 02-123-4567`,
+      messageType: 'CAFETERIA_INFO',
+      timestamp: new Date().toISOString(),
+    };
+
+    // 메시지 추가
+    get().addMessage(cafeteriaInfoMessage);
+
+    // TODO: 백엔드 준비되면 전용 엔드포인트로 요청
+    // chatWebSocketService.sendCafeteriaInfoRequest(currentRoom.roomId);
   },
 
   // 메시지 추가 (실시간 수신)

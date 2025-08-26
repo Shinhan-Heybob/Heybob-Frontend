@@ -3,11 +3,15 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { ChatPlusButton } from './ChatPlusButton';
 
+export type ChatType = 'meal' | 'group';
+
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
   placeholder?: string;
   disabled?: boolean;
   onPlusButtonPress?: () => void;
+  onCafeteriaInfoPress?: () => void;
+  chatType?: ChatType;
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
@@ -15,6 +19,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   placeholder = '메시지 입력...',
   disabled = false,
   onPlusButtonPress,
+  onCafeteriaInfoPress,
+  chatType = 'meal',
 }) => {
   const [message, setMessage] = useState('');
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
@@ -37,9 +43,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setIsDropdownVisible(false);
   };
 
-  const handleMenuItemPress = () => {
-    onPlusButtonPress?.();
+  const handleMenuItemPress = (action: 'main' | 'cafeteria') => {
+    if (action === 'main') {
+      onPlusButtonPress?.();
+    } else if (action === 'cafeteria') {
+      onCafeteriaInfoPress?.();
+    }
     setIsDropdownVisible(false);
+  };
+
+  const getMainMenuText = () => {
+    return chatType === 'meal' ? '1/N 정산하기' : '1/N 모으기';
   };
 
   return (
@@ -48,8 +62,18 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         {/* 드롭다운 메뉴 */}
         {isDropdownVisible && (
           <View style={styles.dropdown}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleMenuItemPress}>
-              <Text style={styles.menuItemText}>1/N 정산하기</Text>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleMenuItemPress('main')}
+            >
+              <Text style={styles.menuItemText}>{getMainMenuText()}</Text>
+            </TouchableOpacity>
+            <View style={styles.menuSeparator} />
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleMenuItemPress('cafeteria')}
+            >
+              <Text style={styles.menuItemText}>학식 정보 보기</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -148,5 +172,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
     fontWeight: '500',
+  },
+  menuSeparator: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 12,
   },
 });

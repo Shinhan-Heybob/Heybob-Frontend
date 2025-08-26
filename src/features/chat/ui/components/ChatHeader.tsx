@@ -7,12 +7,14 @@ interface ChatHeaderProps {
   roomTitle?: string;
   onBackPress?: () => void;
   onMealInfoPress?: () => void;
+  buttonText?: string;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   roomTitle = '학식 먹으러 가는 팟',
   onBackPress,
   onMealInfoPress,
+  buttonText = '밥약 정보 보러가기',
 }) => {
   const handleBackPress = () => {
     if (onBackPress) {
@@ -52,7 +54,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             source={require('@/assets/images/icons/volume.png')} 
             style={{ width: 16, height: 16 }} 
           />
-          <Text style={styles.mealInfoText}>밥약 정보 보러가기</Text>
+          <Text style={styles.mealInfoText}>{buttonText}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -76,6 +78,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
     backButtonText: {
     fontSize: 24,

@@ -1,20 +1,21 @@
 import { Button, Text } from '@/src/shared/ui';
-import { useMealCreateStore } from '@/src/store';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
-import { MealCreateHeader } from './components/MealCreateHeader';
+import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 
-interface MealDetailsScreenProps {
+interface GroupDetailsScreenProps {
   onBackPress?: () => void;
   onNext?: () => void;
 }
 
-export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPress, onNext }) => {
-  const { selectedDate, selectedTimeSlot, selectedFriends } = useMealCreateStore();
-  const [mealName, setMealName] = useState('');
+export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPress, onNext }) => {
+  const groupStore = useGroupCreateStore();
+  const { selectedDate, selectedFriends, setBasicInfo } = groupStore;
+  const [groupName, setGroupName] = useState('');
   const [memo, setMemo] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -26,22 +27,26 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
     }
   };
 
-  const handleCreateMeal = () => {
-    // 밥약 이름과 메모가 모두 입력되었는지 확인
-    if (!mealName.trim() || !memo.trim()) {
+  const handleCreateSavings = () => {
+    // 모임 이름과 메모가 모두 입력되었는지 확인
+    if (!groupName.trim() || !memo.trim()) {
       return;
     }
     
-    // console.log('밥약 만들기 - 3단계로 이동', { mealName, memo });
-    if (onNext) {
-      onNext();
-    }
+    // 모임 기본 정보를 store에 저장
+    setBasicInfo({
+      title: groupName.trim(),
+      description: memo.trim()
+    });
+    
+    // 적금 만들기 페이지로 이동
+    router.push('/groups/create/savings-account');
   };
 
   // 버튼 활성화 조건
-  const isCreateButtonEnabled = mealName.trim().length > 0 && memo.trim().length > 0;
+  const isCreateButtonEnabled = groupName.trim().length > 0 && memo.trim().length > 0;
 
-  const handleMealNameFocus = () => {
+  const handleGroupNameFocus = () => {
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({ y: 350, animated: true });
     }, 100);
@@ -58,11 +63,6 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
     return `${selectedDate.date} (${selectedDate.dayOfWeek})`;
   };
 
-  // 시간 포맷팅 
-  const formatTime = (timeSlot: { time: string; dayOfWeek: string }) => {
-    return timeSlot.time;
-  };
-
   return (
     <KeyboardAvoidingView 
       style={styles.container}
@@ -70,7 +70,10 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
       keyboardVerticalOffset={0}
     >
       {/* 헤더 */}
-      <MealCreateHeader onBackPress={handleBackPress} />
+      <MealCreateHeader 
+        title="모임 만들기"
+        onBackPress={handleBackPress} 
+      />
 
       {/* 스크롤 가능한 콘텐츠 */}
       <ScrollView 
@@ -96,33 +99,20 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
           </View>
         </View>
 
-        {/* 선택된 시간 */}
-        <View style={styles.selectedInfoContainer}>
-          <View style={styles.infoRow}>
-            <Image 
-              source={require('@/assets/images/icons/meal-create.png')} 
-              style={styles.icon} 
-            />
-            <Text style={styles.selectedText}>
-              {selectedTimeSlot ? formatTime(selectedTimeSlot) : '시간 미선택'}
-            </Text>
-          </View>
-        </View>
-
         {/* 선택된 친구들 목록 */}
         <View style={styles.friendContainer}>
-        {selectedFriends.length > 0 && <SelectedFriendsList readOnly={true} />}
+        {selectedFriends.length > 0 && <SelectedFriendsList readOnly={true} store={groupStore} />}
         </View>
 
-        {/* 밥약 이름 입력 */}
+        {/* 모임 이름 입력 */}
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>밥약 이름 입력하기</Text>
+          <Text style={styles.inputLabel}>모임 이름 입력하기</Text>
           <TextInput
             style={styles.textInput}
-            value={mealName}
-            onChangeText={setMealName}
-            onFocus={handleMealNameFocus}
-            placeholder="밥약 이름을 입력해주세요"
+            value={groupName}
+            onChangeText={setGroupName}
+            onFocus={handleGroupNameFocus}
+            placeholder="모임 이름을 입력해주세요"
             placeholderTextColor="#9CA3AF"
           />
         </View>
@@ -147,8 +137,8 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="밥약 만들기"
-          onPress={handleCreateMeal}
+          title="적금 만들기"
+          onPress={handleCreateSavings}
           disabled={!isCreateButtonEnabled}
           style={[
             styles.createButton,
@@ -200,8 +190,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginHorizontal: 20,
-    // marginVertical: 12,
-     marginTop: 4,
+    marginTop: 4,
     marginBottom: 12,
   },
   inputLabel: {

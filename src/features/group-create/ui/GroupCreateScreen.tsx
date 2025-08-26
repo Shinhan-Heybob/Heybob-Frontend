@@ -1,32 +1,32 @@
 import { Button } from '@/src/shared/ui';
-import { useMealCreateStore } from '@/src/store';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { DateSelector } from '../../../shared/ui/molecules/DateSelector';
 import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
-import { AvailableTimeSlots } from './components/AvailableTimeSlots';
-import { FriendSearchButton } from './components/FriendSearchButton';
-import { MealCreateHeader } from './components/MealCreateHeader';
-import { MealDetailsScreen } from './MealDetailsScreen';
-import { MealSuccessScreen } from './MealSuccessScreen';
-// 밥약, 모임 모두에서 사용하는 컴포넌트. 추후 리팩토링 시 수정 필요
-export const MealCreateScreen: React.FC = () => {
+import { FriendSearchButton } from '../../meal-create/ui/components/FriendSearchButton';
+import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
+import { useGroupCreateStore } from '../model/groupCreateStore';
+import { GroupDetailsScreen } from './GroupDetailsScreen';
+import { GroupSuccessScreen } from './GroupSuccessScreen';
+
+export const GroupCreateScreen: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const { selectedTimeSlot, selectedFriends } = useMealCreateStore();
+  const groupStore = useGroupCreateStore();
+  const { selectedDate, selectedFriends } = groupStore;
 
-  // 밥약 만들러 가기 버튼 활성화 조건
-  const isCreateButtonEnabled = selectedTimeSlot !== null;
+  // 모임 만들기 버튼 활성화 조건 (공강시간대는 필요없고 날짜와 친구만 필요)
+  const isCreateButtonEnabled = selectedDate !== null && selectedFriends.length > 0;
 
-  const handleCreateMeal = () => {
+  const handleCreateGroup = () => {
     if (!isCreateButtonEnabled) return;
     
     // 2단계로 이동
     setCurrentStep(2);
   };
 
-  const handleBackToCreateMeal = () => {
+  const handleBackToCreateGroup = () => {
     if (currentStep === 2) {
       setCurrentStep(1);
     } else if (currentStep === 3) {
@@ -36,14 +36,14 @@ export const MealCreateScreen: React.FC = () => {
     }
   };
   
-  // 3단계인 경우 MealSuccessScreen 렌더링
+  // 3단계인 경우 GroupSuccessScreen 렌더링
   if (currentStep === 3) {
-    return <MealSuccessScreen onBackPress={() => setCurrentStep(2)} />;
+    return <GroupSuccessScreen onBackPress={() => setCurrentStep(2)} />;
   }
   
-  // 2단계인 경우 MealDetailsScreen 렌더링
+  // 2단계인 경우 GroupDetailsScreen 렌더링
   if (currentStep === 2) {
-    return <MealDetailsScreen 
+    return <GroupDetailsScreen 
       onBackPress={() => setCurrentStep(1)} 
       onNext={() => setCurrentStep(3)} 
     />;
@@ -53,7 +53,10 @@ export const MealCreateScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* 헤더 */}
-      <MealCreateHeader onBackPress={handleBackToCreateMeal} />
+      <MealCreateHeader 
+        title="모임 만들기"
+        onBackPress={handleBackToCreateGroup} 
+      />
 
       {/* 스크롤 가능한 콘텐츠 */}
       <ScrollView 
@@ -65,24 +68,21 @@ export const MealCreateScreen: React.FC = () => {
         <StepProgress currentStep={1} totalSteps={3} />
 
         {/* 날짜 선택 */}
-        <DateSelector />
+        <DateSelector store={groupStore} />
 
         {/* 친구 검색 버튼 */}
         <FriendSearchButton />
 
         {/* 선택된 친구들 목록 */}
-        {selectedFriends.length > 0 && <SelectedFriendsList />}
-
-        {/* 공강 시간대 표시 */}
-        <AvailableTimeSlots />
+        {selectedFriends.length > 0 && <SelectedFriendsList store={groupStore} />}
         
       </ScrollView>
 
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="밥약 만들러 가기"
-          onPress={handleCreateMeal}
+          title="모임 만들러 가기"
+          onPress={handleCreateGroup}
           disabled={!isCreateButtonEnabled}
           style={[
             styles.createButton,

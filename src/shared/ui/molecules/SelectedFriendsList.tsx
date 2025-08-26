@@ -5,12 +5,33 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-interface SelectedFriendsListProps {
-  readOnly?: boolean;
+// Friend 타입 정의
+interface Friend {
+  id: string;
+  name: string;
+  studentId: string;
+  department: string;
+  avatarId: string;
 }
 
-export const SelectedFriendsList: React.FC<SelectedFriendsListProps> = ({ readOnly = false }) => {
-  const { selectedFriends, removeFriend } = useMealCreateStore();
+// Store interface 정의
+interface StoreInterface {
+  selectedFriends: Friend[];
+  removeFriend: (friendId: string) => void;
+}
+
+interface SelectedFriendsListProps {
+  readOnly?: boolean;
+  store?: StoreInterface; // 외부에서 store를 주입받을 수 있도록
+}
+
+export const SelectedFriendsList: React.FC<SelectedFriendsListProps> = ({ 
+  readOnly = false, 
+  store 
+}) => {
+  // store가 prop으로 전달되지 않았으면 기본 meal store 사용
+  const defaultStore = useMealCreateStore();
+  const { selectedFriends, removeFriend } = store || defaultStore;
 
   if (selectedFriends.length === 0) {
     return null;

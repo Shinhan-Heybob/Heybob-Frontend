@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '@/src/shared/ui';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 // Search Icon Component (Dropdown에서 가져온 것과 동일)
@@ -13,9 +13,15 @@ const SearchIcon: React.FC<{ color?: string }> = ({ color = '#B8B8B8' }) => (
 );
 
 export const FriendSearchButton: React.FC = () => {
+  const pathname = usePathname();
+  
   const handleFriendSearch = () => {
-    // 친구 찾기 페이지로 이동
-    router.push('/meals/create/find-friends');
+    // console.log('FriendSearchButton pathname:', pathname);
+    if (pathname?.includes('/groups/')) {
+      router.push('/groups/create/find-friends');
+    } else {
+      router.push('/meals/create/find-friends');
+    }
   };
 
   return (

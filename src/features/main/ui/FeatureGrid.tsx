@@ -66,8 +66,8 @@ const FEATURES: FeatureItem[] = [
 
 export const FeatureGrid: React.FC = () => {
   const handleFeaturePress = (route: string) => {
-    // 밥약 만들기는 실제 페이지로 이동
-    if (route === '/meals/create') {
+    // 밥약 만들기와 모임 만들기는 실제 페이지로 이동
+    if (route === '/meals/create' || route === '/groups/create') {
       router.push(route);
       return;
     }

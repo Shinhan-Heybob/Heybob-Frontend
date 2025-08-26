@@ -3,13 +3,13 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
-import { MealCreateHeader } from './components/MealCreateHeader';
+import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
 
-interface MealSuccessScreenProps {
+interface GroupSuccessScreenProps {
   onBackPress?: () => void;
 }
 
-export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPress }) => {
+export const GroupSuccessScreen: React.FC<GroupSuccessScreenProps> = ({ onBackPress }) => {
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
@@ -18,19 +18,21 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
     }
   };
 
-  const handleGoToMealInfo = () => {
-    // 임시 밥약 ID로 밥약 정보 페이지 이동 (나중에 실제 API 연동 시 수정)
-    const tempMealId = 'meal-123';
+  const handleGoToGroup = () => {
+    // 임시 모임 ID로 모임 정보 페이지 이동 (나중에 실제 API 연동 시 수정)
+    const tempGroupId = 'group-123';
     
-    console.log('밥약 정보 페이지로 이동:', tempMealId);
-    // @ts-ignore
-    router.replace(`/meal/${tempMealId}`);
+    // 모임 정보 상세 페이지로 이동
+    router.push(`/groups/${tempGroupId}`);
   };
 
   return (
     <View style={styles.container}>
       {/* 헤더 */}
-      <MealCreateHeader onBackPress={handleBackPress} />
+      <MealCreateHeader 
+        title="모임 만들기"
+        onBackPress={handleBackPress} 
+      />
 
       {/* 스크롤 가능한 콘텐츠 */}
       <ScrollView 
@@ -55,7 +57,7 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
           {/* 축하 메시지 */}
           <View style={styles.messageContainer}>
             <Text style={styles.successMessage}>
-              축하해요! 밥약이 만들어졌어요!
+              축하해요! 모임이 만들어졌어요!
             </Text>
           </View>
         </View>
@@ -64,8 +66,8 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="밥약 정보 확인하기"
-          onPress={handleGoToMealInfo}
+          title="모임 보러가기"
+          onPress={handleGoToGroup}
           style={styles.chatroomButton}
         />
       </View>

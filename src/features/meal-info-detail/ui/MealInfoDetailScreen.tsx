@@ -116,13 +116,15 @@ export const MealInfoDetailScreen: React.FC<MealInfoDetailScreenProps> = ({ meal
         )}
 
         {/* 정산 총 금액 */}
+        <View style={styles.section}>  
+            <Text style={styles.settlementTitle}>정산 현황</Text>
         {settlementInfo && (
           <SettlementAmountCard
             date={settlementInfo.requestDate}
             amount={settlementInfo.totalAmount}
           />
         )}
-
+       
         {/* 참여자별 정산 상태 */}
         {settlementInfo && (
           <View style={styles.section}>
@@ -132,6 +134,7 @@ export const MealInfoDetailScreen: React.FC<MealInfoDetailScreenProps> = ({ meal
             />
           </View>
         )}
+         </View>
       </ScrollView>
     </View>
   );
@@ -180,13 +183,19 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 12,
+  },
+  settlementTitle:{
+     fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 0,
   },
   dateTimeContainer: {
     backgroundColor: '#F3F4F6',

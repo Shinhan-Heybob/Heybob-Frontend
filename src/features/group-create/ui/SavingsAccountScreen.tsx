@@ -1,5 +1,5 @@
 import { Button, Text } from '@/src/shared/ui';
-import { useMealCreateStore } from '@/src/store';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -7,7 +7,7 @@ import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHead
 import { StepProgress } from '../../meal-create/ui/components/StepProgress';
 
 export const SavingsAccountScreen: React.FC = () => {
-  const { selectedFriends } = useMealCreateStore();
+  const { selectedFriends, setAmountPerPerson: setStoreAmountPerPerson, savingsInfo } = useGroupCreateStore();
   const [amountPerPerson, setAmountPerPerson] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -25,33 +25,26 @@ export const SavingsAccountScreen: React.FC = () => {
     router.push('/groups/create/success');
   };
 
-  // 오늘 날짜 계산
-  const today = new Date();
-  const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // store에서 적금 정보 가져오기 또는 기본값 사용
+  const startDate = savingsInfo?.startDate || new Date().toISOString().split('T')[0];
+  const endDate = savingsInfo?.endDate || new Date().toISOString().split('T')[0];
+  const interestRate = savingsInfo?.interestRate || '5%';
+  const paymentCycle = savingsInfo?.paymentCycle || '일주일';
 
-  // 3개월 후 날짜 계산
-  const getDateAfterMonths = (months: number) => {
-    const futureDate = new Date(today);
-    futureDate.setMonth(futureDate.getMonth() + months);
-    return futureDate;
-  };
-
-  const startDate = formatDate(today);
-  const endDate = formatDate(getDateAfterMonths(3));
-  const interestRate = '5%';
-  const paymentCycle = '일주일';
-
-  // 목표 금액 계산 (선택된 친구 수 + 본인 = 총 인원)
-  const totalMembers = selectedFriends.length + 1;
-  const targetAmount = amountPerPerson ? Number(amountPerPerson) * totalMembers : 0;
+  // 현재 입력값이 있을 때만 목표 금액 표시
+  const currentAmount = Number(amountPerPerson);
+  const targetAmount = (currentAmount > 0 && savingsInfo?.totalAmount) ? savingsInfo.totalAmount : 0;
 
   // 버튼 활성화 조건
   const isCreateButtonEnabled = amountPerPerson.trim().length > 0 && !isNaN(Number(amountPerPerson)) && Number(amountPerPerson) > 0;
+
+  // 1인당 금액이 변경될 때 store 업데이트
+  useEffect(() => {
+    const amount = Number(amountPerPerson);
+    if (amount > 0) {
+      setStoreAmountPerPerson(amount);
+    }
+  }, [amountPerPerson, setStoreAmountPerPerson]);
 
   // 목표금액이 생성될 때 자동으로 스크롤
   useEffect(() => {
@@ -151,7 +144,7 @@ export const SavingsAccountScreen: React.FC = () => {
               {formatCurrency(targetAmount)}
             </Text>
             <Text style={styles.targetAmountDetail}>
-              ({formatCurrency(Number(amountPerPerson))} × {totalMembers}명)
+              (주 {formatCurrency(Number(amountPerPerson))} × 12주 × {selectedFriends.length + 1}명 + 이자 5%)
             </Text>
           </View>
         )}

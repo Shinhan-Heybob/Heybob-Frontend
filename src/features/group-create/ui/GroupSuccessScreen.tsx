@@ -22,9 +22,8 @@ export const GroupSuccessScreen: React.FC<GroupSuccessScreenProps> = ({ onBackPr
     // 임시 모임 ID로 모임 정보 페이지 이동 (나중에 실제 API 연동 시 수정)
     const tempGroupId = 'group-123';
     
-    console.log('모임 정보 페이지로 이동:', tempGroupId);
-    // 일단 메인 페이지로 이동
-    router.replace('/');
+    // 모임 정보 상세 페이지로 이동
+    router.push(`/groups/${tempGroupId}`);
   };
 
   return (

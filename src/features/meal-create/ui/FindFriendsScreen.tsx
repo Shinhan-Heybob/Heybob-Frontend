@@ -2,6 +2,7 @@ import { getAvatarById } from '@/src/shared/data/avatars';
 import { FriendData, searchFriends } from '@/src/shared/data/friends';
 import { Button, Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
+import { useGroupCreateStore } from '@/src/features/group-create/model/groupCreateStore';
 import { Image } from 'expo-image';
 import { router, usePathname } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -32,8 +33,14 @@ const SEARCH_OPTIONS = [
 ];
 
 export const FindFriendsScreen: React.FC = () => {
-  const { selectedFriends, addFriend, removeFriend } = useMealCreateStore();
   const pathname = usePathname();
+  
+  // 경로에 따라 다른 store 사용
+  const isGroupMode = pathname === '/groups/create/find-friends';
+  const mealStore = useMealCreateStore();
+  const groupStore = useGroupCreateStore();
+  
+  const { selectedFriends, addFriend, removeFriend } = isGroupMode ? groupStore : mealStore;
   
   // console.log('Current pathname:', pathname);
   

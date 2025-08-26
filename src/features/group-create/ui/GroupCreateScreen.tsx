@@ -1,5 +1,5 @@
 import { Button } from '@/src/shared/ui';
-import { useMealCreateStore } from '@/src/store';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -13,7 +13,8 @@ import { GroupSuccessScreen } from './GroupSuccessScreen';
 
 export const GroupCreateScreen: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const { selectedDate, selectedFriends } = useMealCreateStore();
+  const groupStore = useGroupCreateStore();
+  const { selectedDate, selectedFriends } = groupStore;
 
   // 모임 만들기 버튼 활성화 조건 (공강시간대는 필요없고 날짜와 친구만 필요)
   const isCreateButtonEnabled = selectedDate !== null && selectedFriends.length > 0;
@@ -67,13 +68,13 @@ export const GroupCreateScreen: React.FC = () => {
         <StepProgress currentStep={1} totalSteps={3} />
 
         {/* 날짜 선택 */}
-        <DateSelector />
+        <DateSelector store={groupStore} />
 
         {/* 친구 검색 버튼 */}
         <FriendSearchButton />
 
         {/* 선택된 친구들 목록 */}
-        {selectedFriends.length > 0 && <SelectedFriendsList />}
+        {selectedFriends.length > 0 && <SelectedFriendsList store={groupStore} />}
         
       </ScrollView>
 

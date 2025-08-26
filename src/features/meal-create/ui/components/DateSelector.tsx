@@ -5,8 +5,26 @@ import { Calendar } from 'react-native-calendars';
 import { Image } from 'expo-image';
 import { useMealCreateStore } from '@/src/store';
 
-export const DateSelector: React.FC = () => {
-  const { selectedDate, setSelectedDate } = useMealCreateStore();
+// SelectedDate 타입 정의
+interface SelectedDate {
+  date: string;
+  dayOfWeek: string;
+}
+
+// Store interface 정의
+interface DateStoreInterface {
+  selectedDate: SelectedDate | null;
+  setSelectedDate: (date: SelectedDate) => void;
+}
+
+interface DateSelectorProps {
+  store?: DateStoreInterface;
+}
+
+export const DateSelector: React.FC<DateSelectorProps> = ({ store }) => {
+  // store가 prop으로 전달되지 않았으면 기본 meal store 사용
+  const defaultStore = useMealCreateStore();
+  const { selectedDate, setSelectedDate } = store || defaultStore;
   const [showCalendar, setShowCalendar] = useState(false);
 
   // 오늘 날짜 계산 (로컬 시간대 기준)

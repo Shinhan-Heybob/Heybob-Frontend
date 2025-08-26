@@ -1,5 +1,5 @@
 import { Button, Text } from '@/src/shared/ui';
-import { useMealCreateStore } from '@/src/store';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -13,7 +13,8 @@ interface GroupDetailsScreenProps {
 }
 
 export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPress, onNext }) => {
-  const { selectedDate, selectedFriends } = useMealCreateStore();
+  const groupStore = useGroupCreateStore();
+  const { selectedDate, selectedFriends, setBasicInfo } = groupStore;
   const [groupName, setGroupName] = useState('');
   const [memo, setMemo] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
@@ -31,6 +32,12 @@ export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPr
     if (!groupName.trim() || !memo.trim()) {
       return;
     }
+    
+    // 모임 기본 정보를 store에 저장
+    setBasicInfo({
+      title: groupName.trim(),
+      description: memo.trim()
+    });
     
     // 적금 만들기 페이지로 이동
     router.push('/groups/create/savings-account');
@@ -94,7 +101,7 @@ export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPr
 
         {/* 선택된 친구들 목록 */}
         <View style={styles.friendContainer}>
-        {selectedFriends.length > 0 && <SelectedFriendsList readOnly={true} />}
+        {selectedFriends.length > 0 && <SelectedFriendsList readOnly={true} store={groupStore} />}
         </View>
 
         {/* 모임 이름 입력 */}

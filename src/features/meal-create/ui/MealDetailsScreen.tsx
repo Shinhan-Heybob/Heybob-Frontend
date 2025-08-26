@@ -3,9 +3,9 @@ import { useMealCreateStore } from '@/src/store';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { MealCreateHeader } from './MealCreateHeader';
-import { SelectedFriendsList } from './SelectedFriendsList';
-import { StepProgress } from './StepProgress';
+import { MealCreateHeader } from './components/MealCreateHeader';
+import { SelectedFriendsList } from './components/SelectedFriendsList';
+import { StepProgress } from './components/StepProgress';
 
 interface MealDetailsScreenProps {
   onBackPress?: () => void;

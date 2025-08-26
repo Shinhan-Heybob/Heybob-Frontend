@@ -2,8 +2,8 @@ import { Button, Text } from '@/src/shared/ui';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
-import { MealCreateHeader } from './MealCreateHeader';
-import { StepProgress } from './StepProgress';
+import { MealCreateHeader } from './components/MealCreateHeader';
+import { StepProgress } from './components/StepProgress';
 
 interface MealSuccessScreenProps {
   onBackPress?: () => void;

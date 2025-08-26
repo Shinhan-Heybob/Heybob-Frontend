@@ -1,5 +1,6 @@
 import { getAvatarById } from '@/src/shared/data/avatars';
 import { Text } from '@/src/shared/ui';
+import { MealInfoCard, type MealInfo as MealInfoCardType } from '@/src/shared/ui/atoms/MealInfoCard';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
@@ -33,6 +34,17 @@ interface MealChatInfoScreenProps {
 export const MealChatInfoScreen: React.FC<MealChatInfoScreenProps> = ({ mealId }) => {
   const [mealInfo, setMealInfo] = useState<MealInfo | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // MealInfo → MealInfoCard 타입 변환 함수
+  const convertToMealInfoCardType = (info: MealInfo): MealInfoCardType => {
+    return {
+      hostName: info.host.name,
+      hostDepartment: info.host.department,
+      hostStudentId: info.host.studentId,
+      hostAvatarId: info.host.profileUrl,
+      mealTitle: info.title,
+    };
+  };
 
   useEffect(() => {
     loadMealInfo();
@@ -156,23 +168,10 @@ export const MealChatInfoScreen: React.FC<MealChatInfoScreenProps> = ({ mealId }
         showsVerticalScrollIndicator={false}
       >
         {/* 방장 정보 */}
-        <View style={styles.hostSection}>
-          <View style={styles.hostInfo}>
-            <View style={styles.avatarContainer}>
-              <Image 
-                source={getAvatarById(mealInfo.host.profileUrl)} 
-                style={styles.avatar}
-resizeMode="contain"
-              />
-            </View>
-            <View style={styles.hostDetails}>
-              <Text style={styles.hostTitle}>
-                방장 : {mealInfo.host.department} {mealInfo.host.name} ({mealInfo.host.studentId})
-              </Text>
-              <Text style={styles.mealTitle}>{mealInfo.title}</Text>
-            </View>
-          </View>
-        </View>
+        <MealInfoCard
+          mealInfo={convertToMealInfoCardType(mealInfo)}
+          isLoading={false}
+        />
 
         {/* 밥약 날짜/시간 */}
         <View style={styles.section}>
@@ -257,52 +256,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#EF4444',
   },
-  hostSection: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  hostInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#E0E7FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-  },
-  hostDetails: {
-    flex: 1,
-  },
-  hostTitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  mealTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
   section: {
     marginBottom: 24,
+  },
+  avatar:{
+    width:40,
+    height:40
   },
   sectionTitle: {
     fontSize: 16,

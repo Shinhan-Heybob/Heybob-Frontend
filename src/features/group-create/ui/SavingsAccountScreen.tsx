@@ -1,10 +1,10 @@
 import { Button, Text } from '@/src/shared/ui';
-import { useGroupCreateStore } from '../model/groupCreateStore';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
-import { StepProgress } from '../../meal-create/ui/components/StepProgress';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 
 export const SavingsAccountScreen: React.FC = () => {
   const { selectedFriends, setAmountPerPerson: setStoreAmountPerPerson, savingsInfo } = useGroupCreateStore();

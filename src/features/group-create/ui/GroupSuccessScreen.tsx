@@ -2,8 +2,8 @@ import { Button, Text } from '@/src/shared/ui';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
-import { StepProgress } from '../../meal-create/ui/components/StepProgress';
 
 interface GroupSuccessScreenProps {
   onBackPress?: () => void;

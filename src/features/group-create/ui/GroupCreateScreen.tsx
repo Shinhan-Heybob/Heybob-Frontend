@@ -1,13 +1,13 @@
 import { Button } from '@/src/shared/ui';
-import { useGroupCreateStore } from '../model/groupCreateStore';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { DateSelector } from '../../meal-create/ui/components/DateSelector';
+import { DateSelector } from '../../../shared/ui/molecules/DateSelector';
+import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
+import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { FriendSearchButton } from '../../meal-create/ui/components/FriendSearchButton';
 import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
-import { SelectedFriendsList } from '../../meal-create/ui/components/SelectedFriendsList';
-import { StepProgress } from '../../meal-create/ui/components/StepProgress';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 import { GroupDetailsScreen } from './GroupDetailsScreen';
 import { GroupSuccessScreen } from './GroupSuccessScreen';
 

@@ -1,11 +1,11 @@
 import { Button, Text } from '@/src/shared/ui';
-import { useGroupCreateStore } from '../model/groupCreateStore';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
+import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
-import { SelectedFriendsList } from '../../meal-create/ui/components/SelectedFriendsList';
-import { StepProgress } from '../../meal-create/ui/components/StepProgress';
+import { useGroupCreateStore } from '../model/groupCreateStore';
 
 interface GroupDetailsScreenProps {
   onBackPress?: () => void;

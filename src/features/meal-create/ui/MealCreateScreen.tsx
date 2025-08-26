@@ -3,15 +3,15 @@ import { useMealCreateStore } from '@/src/store';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { DateSelector } from '../../../shared/ui/molecules/DateSelector';
+import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
+import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { AvailableTimeSlots } from './components/AvailableTimeSlots';
-import { DateSelector } from './components/DateSelector';
 import { FriendSearchButton } from './components/FriendSearchButton';
 import { MealCreateHeader } from './components/MealCreateHeader';
-import { SelectedFriendsList } from './components/SelectedFriendsList';
-import { StepProgress } from './components/StepProgress';
 import { MealDetailsScreen } from './MealDetailsScreen';
 import { MealSuccessScreen } from './MealSuccessScreen';
-
+// 밥약, 모임 모두에서 사용하는 컴포넌트. 추후 리팩토링 시 수정 필요
 export const MealCreateScreen: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const { selectedTimeSlot, selectedFriends } = useMealCreateStore();

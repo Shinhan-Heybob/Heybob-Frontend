@@ -1,5 +1,4 @@
 import { Text } from '@/src/shared/ui';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -36,7 +35,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     <View style={styles.container}>
       {/* 뒤로가기 버튼 */}
       <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-        <Ionicons name="arrow-back" size={24} color="#3B82F6" />
+        {/* <Ionicons name="arrow-back" size={24} color="#3B82F6" /> */}
+        <Text style={styles.backButtonText}>‹</Text>
       </TouchableOpacity>
 
       {/* 제목 */}
@@ -76,6 +76,11 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+    backButtonText: {
+    fontSize: 24,
+    color: '#374151',
+    fontWeight: '300',
   },
   title: {
     fontSize: 18,

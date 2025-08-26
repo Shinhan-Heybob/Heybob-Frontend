@@ -189,8 +189,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   // + 버튼 클릭 (1/N 요청하기)
   const handlePlusButtonPress = () => {
-    // TODO: 1/N 요청 페이지로 라우팅
-    console.log('1/N 요청하기 페이지로 이동');
+    router.push({
+      pathname: '/split-bill/[roomId]',
+      params: { roomId }
+    });
   };
 
   return (

@@ -35,11 +35,12 @@ export default function RootLayout() {
       const inMealsGroup = segments[0] === 'meals';
       const inMealGroup = segments[0] === 'meal'; // 🆕 meal 그룹 추가
       const inChatGroup = segments[0] === 'chat';
+      const inSplitBillGroup = segments[0] === 'split-bill';
 
       if (!isAuthenticated && !inAuthGroup) {
         // 인증 안됨 → 로그인으로
         router.replace('/(auth)/sign-in');
-      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inMealGroup && !inChatGroup) {
+      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inMealGroup && !inChatGroup && !inSplitBillGroup) {
         // 인증됨 + 허용된 그룹이 아님 → 메인으로
         router.replace('/(main)');
       }
@@ -69,6 +70,7 @@ export default function RootLayout() {
         <Stack.Screen name="meals" />
         <Stack.Screen name="meal" />
         <Stack.Screen name="chat" />
+        <Stack.Screen name="split-bill" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

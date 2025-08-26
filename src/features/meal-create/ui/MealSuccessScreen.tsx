@@ -64,7 +64,7 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="밥약 채팅방 입장하기"
+          title="밥약 정보 확인하기"
           onPress={handleGoToMealInfo}
           style={styles.chatroomButton}
         />

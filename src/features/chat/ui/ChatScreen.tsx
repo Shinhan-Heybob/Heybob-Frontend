@@ -114,20 +114,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   // 결제 버튼 클릭
   const handlePaymentPress = (message: ChatMessage) => {
     if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
-      Alert.alert(
-        '결제 확인',
-        `${message.paymentRequestData.requestAmount.toLocaleString()}원을 송금하시겠습니까?`,
-        [
-          { text: '취소', style: 'cancel' },
-          { 
-            text: '송금하기', 
-            onPress: () => {
-              // TODO: 실제 결제 API 호출
-              console.log('결제 처리:', message.paymentRequestData?.requestAmount);
-            }
-          }
-        ]
-      );
+      router.push({
+        pathname: '/payment-confirm/[roomId]',
+        params: {
+          roomId: roomId,
+          amount: message.paymentRequestData.requestAmount.toString(),
+          messageId: message.messageId
+        }
+      });
     }
   };
 

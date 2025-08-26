@@ -7,10 +7,10 @@ import { AvailableTimeSlots } from './components/AvailableTimeSlots';
 import { DateSelector } from './components/DateSelector';
 import { FriendSearchButton } from './components/FriendSearchButton';
 import { MealCreateHeader } from './components/MealCreateHeader';
-import { MealDetailsScreen } from './components/MealDetailsScreen';
-import { MealSuccessScreen } from './components/MealSuccessScreen';
 import { SelectedFriendsList } from './components/SelectedFriendsList';
 import { StepProgress } from './components/StepProgress';
+import { MealDetailsScreen } from './MealDetailsScreen';
+import { MealSuccessScreen } from './MealSuccessScreen';
 
 export const MealCreateScreen: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);

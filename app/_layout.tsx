@@ -1,3 +1,6 @@
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Text } from '@/src/shared/ui';
+import { useAuthStore } from '@/src/store';
 import {
   DarkTheme,
   DefaultTheme,
@@ -6,14 +9,10 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import 'react-native-reanimated';
 import '../global.css';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Text } from '@/src/shared/ui';
-import { useAuthStore } from '@/src/store';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -33,6 +32,7 @@ export default function RootLayout() {
       const inAuthGroup = segments[0] === '(auth)';
       const inMainGroup = segments[0] === '(main)';
       const inMealsGroup = segments[0] === 'meals';
+      const inTimetableGroup = segments[0] === 'timetable';
       const inMealGroup = segments[0] === 'meal'; // 🆕 meal 그룹 추가
       const inGroupsGroup = segments[0] === 'groups'; // 🆕 groups 그룹 추가
       const inChatGroup = segments[0] === 'chat';
@@ -41,10 +41,12 @@ export default function RootLayout() {
       const inSavingsConfirmGroup = segments[0] === 'savings-confirm';
       const inMealInfoGroup = segments[0] === 'meal-info';
 
+
       if (!isAuthenticated && !inAuthGroup) {
         // 인증 안됨 → 로그인으로
         router.replace('/(auth)/sign-in');
-      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inMealGroup && !inGroupsGroup && !inChatGroup && !inSplitBillGroup && !inPaymentConfirmGroup && !inSavingsConfirmGroup && !inMealInfoGroup) {
+
+      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inMealGroup && !inTimetableGroup && !inGroupsGroup && !inChatGroup && !inSplitBillGroup && !inPaymentConfirmGroup && !inSavingsConfirmGroup && !inMealInfoGroup) {
         // 인증됨 + 허용된 그룹이 아님 → 메인으로
         router.replace('/(main)');
       }
@@ -72,6 +74,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(main)" />
         <Stack.Screen name="meals" />
+        <Stack.Screen name="timetable" />
         <Stack.Screen name="meal" />
         <Stack.Screen name="groups" />
         <Stack.Screen name="chat" />

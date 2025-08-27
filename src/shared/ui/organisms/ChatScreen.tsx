@@ -135,20 +135,14 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
   // 적금 버튼 클릭 (모임용)
   const handleSavingsPress = (message: ChatMessage) => {
     if (message.messageType === 'SAVINGS_REQUEST' && message.savingsRequestData) {
-      // TODO: 적금 확인 페이지 구현 후 활성화
-      console.log('적금 요청 처리:', {
-        roomId: roomId,
-        amount: message.savingsRequestData.requestAmount,
-        messageId: message.messageId
+      router.push({
+        pathname: '/savings-confirm/[roomId]',
+        params: {
+          roomId: roomId,
+          amount: message.savingsRequestData.requestAmount.toString(),
+          messageId: message.messageId
+        }
       });
-      // router.push({
-      //   pathname: '/savings-confirm/[roomId]',
-      //   params: {
-      //     roomId: roomId,
-      //     amount: message.savingsRequestData.requestAmount.toString(),
-      //     messageId: message.messageId
-      //   }
-      // });
     }
   };
 

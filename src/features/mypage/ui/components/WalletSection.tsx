@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Alert, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { mypageApi } from '../../api/mypageApi';
 import { DepositModal } from './DepositModal';
 
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   depositButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#7BBBFB',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',

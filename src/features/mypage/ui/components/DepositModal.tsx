@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Modal, 
+import {
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { mypageApi } from '../../api/mypageApi';
 
@@ -101,16 +101,18 @@ export const DepositModal: React.FC<DepositModalProps> = ({
               
               {/* 입금액 입력 */}
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>입금액</Text>
-                <TextInput
-                  style={styles.input}
-                  value={amount}
-                  onChangeText={handleAmountChange}
-                  placeholder="금액을 입력하세요"
-                  keyboardType="numeric"
-                  maxLength={15} // 999,999,999,999
-                />
-                <Text style={styles.unit}>원</Text>
+                <Text style={styles.label}>입금 금액</Text>
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={styles.input}
+                    value={amount}
+                    onChangeText={handleAmountChange}
+                    placeholder="금액을 입력하세요"
+                    keyboardType="numeric"
+                    maxLength={15} // 999,999,999,999
+                  />
+                  <Text style={styles.unit}>원</Text>
+                </View>
               </View>
 
               {/* 버튼들 */}
@@ -178,7 +180,12 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 8,
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#D1D5DB',
     borderRadius: 8,
@@ -191,8 +198,7 @@ const styles = StyleSheet.create({
   unit: {
     fontSize: 16,
     color: '#6B7280',
-    textAlign: 'right',
-    marginTop: 4,
+    marginLeft: 12,
   },
   buttonContainer: {
     flexDirection: 'row',

@@ -1,0 +1,1 @@
+export { MealInfoHeader } from './MealInfoHeader';

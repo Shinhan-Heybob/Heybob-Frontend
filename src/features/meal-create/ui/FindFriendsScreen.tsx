@@ -2,8 +2,9 @@ import { getAvatarById } from '@/src/shared/data/avatars';
 import { FriendData, searchFriends } from '@/src/shared/data/friends';
 import { Button, Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
+import { useGroupCreateStore } from '@/src/features/group-create/model/groupCreateStore';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -32,7 +33,16 @@ const SEARCH_OPTIONS = [
 ];
 
 export const FindFriendsScreen: React.FC = () => {
-  const { selectedFriends, addFriend, removeFriend } = useMealCreateStore();
+  const pathname = usePathname();
+  
+  // 경로에 따라 다른 store 사용
+  const isGroupMode = pathname === '/groups/create/find-friends';
+  const mealStore = useMealCreateStore();
+  const groupStore = useGroupCreateStore();
+  
+  const { selectedFriends, addFriend, removeFriend } = isGroupMode ? groupStore : mealStore;
+  
+  // console.log('Current pathname:', pathname);
   
   const [searchType, setSearchType] = useState<SearchType>('name');
   const [searchQuery, setSearchQuery] = useState('');
@@ -223,7 +233,7 @@ export const FindFriendsScreen: React.FC = () => {
             })}
           </View>
           <Button
-            title="시간표 대조하러 가기"
+            title={pathname === '/groups/create/find-friends' ? "모임 만들러 가기" : "시간표 대조하러 가기"}
             onPress={handleBackToCreateMeal}
             style={styles.continueButton}
           />

@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { User, LoginRequest, SignUpFormData } from '@/src/shared/types/auth';
-import { SCHOOLS } from '@/src/shared/data/schools';
 import { DEPARTMENTS } from '@/src/shared/data/departments';
+import { SCHOOLS } from '@/src/shared/data/schools';
+import { LoginRequest, SignUpFormData, User } from '@/src/shared/types/auth';
+import { create } from 'zustand';
 
 interface AuthState {
   // State
@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // 더미 로그인 검증 (실제로는 API 호출)
-      if (loginData.studentId === 'test123' && loginData.password === 'password') {
+      if (loginData.studentId === 'test' && loginData.password === '1') {
         const selectedSchool = SCHOOLS.find(school => school.id === loginData.schoolId);
         
         const mockUser: User = {

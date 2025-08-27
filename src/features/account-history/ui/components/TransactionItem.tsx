@@ -60,8 +60,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     paddingVertical: 16,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   leftSection: {
     flex: 1,

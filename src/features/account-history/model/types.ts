@@ -35,3 +35,9 @@ export interface FormattedTransaction extends TransactionHistoryDto {
   formattedDate: string;     // MM월 DD일 형식
   formattedTime: string;     // HH:MM 형식
 }
+
+// 날짜별 그룹핑된 섹션 데이터
+export interface DateSection {
+  title: string;                    // "2024년 08월 27일"
+  data: FormattedTransaction[];     // 해당 날짜의 거래 내역들
+}

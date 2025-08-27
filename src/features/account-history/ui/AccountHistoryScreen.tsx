@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Text, FlatList, Alert } from 'react-native';
+import { View, StyleSheet, Text, SectionList, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccountHistoryStore } from '../model/accountHistoryStore';
 import { AccountHistoryHeader } from './components/AccountHistoryHeader';
 import { DateRangeSelector } from './components/DateRangeSelector';
 import { TransactionItem } from './components/TransactionItem';
-import type { FormattedTransaction } from '../model/types';
+import type { FormattedTransaction, DateSection } from '../model/types';
 
 export const AccountHistoryScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -16,7 +16,7 @@ export const AccountHistoryScreen: React.FC = () => {
     error,
     loadAccountHistory,
     setDateRange,
-    getFormattedTransactions,
+    getGroupedTransactions,
     clearError,
   } = useAccountHistoryStore();
 
@@ -34,8 +34,8 @@ export const AccountHistoryScreen: React.FC = () => {
     }
   }, [error]);
 
-  // 포맷팅된 거래 내역 가져오기
-  const formattedTransactions = getFormattedTransactions();
+  // 날짜별로 그룹핑된 거래 내역 가져오기
+  const groupedTransactions = getGroupedTransactions();
 
   // 빈 목록 렌더링
   const renderEmptyList = () => (
@@ -49,6 +49,13 @@ export const AccountHistoryScreen: React.FC = () => {
   // 거래 아이템 렌더링
   const renderTransactionItem = ({ item }: { item: FormattedTransaction }) => (
     <TransactionItem transaction={item} />
+  );
+
+  // 날짜 헤더 렌더링
+  const renderSectionHeader = ({ section }: { section: DateSection }) => (
+    <View style={styles.dateHeader}>
+      <Text style={styles.dateHeaderText}>{section.title}</Text>
+    </View>
   );
 
   return (
@@ -70,10 +77,11 @@ export const AccountHistoryScreen: React.FC = () => {
       </View>
 
       {/* 거래 목록 */}
-      <FlatList
-        data={formattedTransactions}
+      <SectionList
+        sections={groupedTransactions}
         keyExtractor={(item) => item.transactionUniqueNo}
         renderItem={renderTransactionItem}
+        renderSectionHeader={renderSectionHeader}
         ListEmptyComponent={renderEmptyList}
         contentContainerStyle={[
           styles.listContainer,
@@ -82,6 +90,7 @@ export const AccountHistoryScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         refreshing={isLoading}
         onRefresh={loadAccountHistory}
+        stickySectionHeadersEnabled={false}
       />
     </View>
   );
@@ -117,5 +126,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#9CA3AF',
     textAlign: 'center',
+  },
+  dateHeader: {
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  dateHeaderText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '600',
   },
 });

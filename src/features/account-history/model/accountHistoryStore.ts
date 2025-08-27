@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { accountHistoryApi } from '../api/accountHistoryApi';
-import type { DateRange, TransactionHistoryDto, FormattedTransaction } from './types';
+import type { DateRange, TransactionHistoryDto, FormattedTransaction, DateSection } from './types';
 
 interface AccountHistoryState {
   // 데이터
@@ -26,6 +26,9 @@ interface AccountHistoryActions {
   
   // 포맷팅된 거래 내역 반환
   getFormattedTransactions: () => FormattedTransaction[];
+  
+  // 날짜별로 그룹핑된 거래 내역 반환
+  getGroupedTransactions: () => DateSection[];
 }
 
 type AccountHistoryStore = AccountHistoryState & AccountHistoryActions;
@@ -67,6 +70,15 @@ const formatTime = (timeStr: string): string => {
   const hour = timeStr.substring(0, 2);
   const minute = timeStr.substring(2, 4);
   return `${hour}:${minute}`;
+};
+
+// 날짜 전체 포맷팅 (YYYYMMDD → YYYY년 MM월 DD일)
+const formatFullDate = (dateStr: string): string => {
+  if (dateStr.length !== 8) return dateStr;
+  const year = dateStr.substring(0, 4);
+  const month = parseInt(dateStr.substring(4, 6));
+  const day = parseInt(dateStr.substring(6, 8));
+  return `${year}년 ${String(month).padStart(2, '0')}월 ${String(day).padStart(2, '0')}일`;
 };
 
 export const useAccountHistoryStore = create<AccountHistoryStore>((set, get) => ({
@@ -133,6 +145,30 @@ export const useAccountHistoryStore = create<AccountHistoryStore>((set, get) => 
       isLoading: false,
       error: null,
     });
+  },
+
+  // 날짜별로 그룹핑된 거래 내역 반환
+  getGroupedTransactions: (): DateSection[] => {
+    const formattedTransactions = get().getFormattedTransactions();
+    
+    // 날짜별로 그룹핑
+    const grouped: { [key: string]: FormattedTransaction[] } = {};
+    
+    formattedTransactions.forEach(transaction => {
+      const dateKey = transaction.transactionDate;
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(transaction);
+    });
+    
+    // DateSection 배열로 변환하고 날짜별로 정렬 (최신순)
+    return Object.keys(grouped)
+      .sort((a, b) => b.localeCompare(a)) // 내림차순 정렬 (최신 날짜 먼저)
+      .map(dateKey => ({
+        title: formatFullDate(dateKey),
+        data: grouped[dateKey]
+      }));
   },
 
   // 에러 초기화

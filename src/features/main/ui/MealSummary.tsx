@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
 import { Text } from '@/src/shared/ui';
 import { useMealStore } from '@/src/store';
+import React, { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 interface MealSummaryData {
   participationCount: number;  // 밥약 참여 횟수
-  savingsAmount: number;       // 모임 적금 금액
+  groupParticipationCount: number; // 그룹 만들기 참여 횟수
+  accountBalance: number;       // 내 계좌 잔액
 }
 
 interface MealSummaryProps {
@@ -22,17 +23,46 @@ export const MealSummary: React.FC<MealSummaryProps> = ({ data }) => {
     }
   }, [storeData, fetchMealSummary]);
 
-  // 우선순위: props > store > 더미 데이터
-  const summaryData = data || storeData || {
-    participationCount: 12,
-    savingsAmount: 47500,
-  };
+  // 우선순위: props > store
+  const summaryData = data || storeData;
+
+  // 데이터 로딩 중일 때
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text variant="body" style={styles.sectionTitle}>
+          밥약 요약
+        </Text>
+        <View style={styles.summaryContainer}>
+          <Text variant="body" style={styles.loadingText}>
+            로딩 중...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // 데이터가 없을 때
+  if (!summaryData) {
+    return (
+      <View style={styles.container}>
+        <Text variant="body" style={styles.sectionTitle}>
+          밥약 요약
+        </Text>
+        <View style={styles.summaryContainer}>
+          <Text variant="body" style={styles.loadingText}>
+            데이터를 불러올 수 없습니다
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* 섹션 제목 */}
       <Text variant="body" style={styles.sectionTitle}>
-        이번 학기 밥약 요약
+       밥약 요약
       </Text>
 
       {/* 요약 정보 */}
@@ -50,13 +80,26 @@ export const MealSummary: React.FC<MealSummaryProps> = ({ data }) => {
         {/* 구분선 */}
         <View style={styles.separator} />
 
-        {/* 밥약 모임 적금 */}
+         {/* 모임 참여 */}
         <View style={styles.summaryRow}>
           <Text variant="body" style={styles.summaryLabel}>
-            밥약 모임 적금
+            모임 참여
           </Text>
           <Text variant="body" style={styles.summaryValue}>
-            {summaryData.savingsAmount.toLocaleString()}원
+            {summaryData.groupParticipationCount}회
+          </Text>
+        </View>
+
+        {/* 구분선 */}
+        <View style={styles.separator} />
+
+        {/* 내 계좌 잔액 */}
+        <View style={styles.summaryRow}>
+          <Text variant="body" style={styles.summaryLabel}>
+            내 계좌 잔액
+          </Text>
+          <Text variant="body" style={styles.summaryValue}>
+            {summaryData.accountBalance.toLocaleString()}원
           </Text>
         </View>
       </View>
@@ -108,5 +151,11 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingText: {
+    color: '#6B7280',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingVertical: 20,
   },
 });

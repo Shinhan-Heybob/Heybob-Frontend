@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 
 export interface MealSummaryData {
-  participationCount: number;  // 밥약 참여 횟수
-  savingsAmount: number;       // 모임 적금 금액
+  participationCount: number;  // 밥약 만들기 참여 횟수
+  groupParticipationCount: number; // 그룹 만들기 참여 횟수
+  accountBalance: number;       // 내 계좌 잔액
 }
 
 interface MealState {
@@ -39,7 +40,8 @@ export const useMealStore = create<MealStore>((set, get) => ({
       
       const dummyData: MealSummaryData = {
         participationCount: 12,
-        savingsAmount: 47500,
+        groupParticipationCount: 3,
+        accountBalance: 3400
       };
       
       set({ 

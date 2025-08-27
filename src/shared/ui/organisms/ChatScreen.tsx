@@ -166,7 +166,7 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
     } else {
       // 모임 정보 보기
       const groupId = roomId.replace('group_', ''); // 실제로는 roomId에서 groupId 추출
-      router.push(`/groups/${groupId}`);
+      router.push(`/groups/${groupId}/info`);
     }
   };
 

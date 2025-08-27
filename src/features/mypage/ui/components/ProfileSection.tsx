@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
-import { Image } from 'expo-image';
-import { useUserStore } from '../../model/userStore';
 import { getAvatarById } from '@/src/shared/data/avatars';
+import { QRModal } from '@/src/shared/ui/molecules/QRModal';
+import { Image } from 'expo-image';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useUserStore } from '../../model/userStore';
 
 export const ProfileSection: React.FC = () => {
   const { profile, isLoading, changeAvatarRandomly } = useUserStore();
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const handleChangeAvatar = async () => {
     try {
@@ -13,6 +15,14 @@ export const ProfileSection: React.FC = () => {
     } catch (error) {
       Alert.alert('오류', '아바타 변경에 실패했습니다.');
     }
+  };
+
+  const handleShowStudentCard = () => {
+    setShowQRModal(true);
+  };
+
+  const handleCloseQRModal = () => {
+    setShowQRModal(false);
   };
 
   if (!profile) {
@@ -26,7 +36,7 @@ export const ProfileSection: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.profileCard}>
-        {/* 아바타 이미지 */}
+        {/* 왼쪽: 아바타 이미지 */}
         <View style={styles.avatarContainer}>
           <Image
             source={getAvatarById(profile.profileImage)}
@@ -48,12 +58,39 @@ export const ProfileSection: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 사용자 정보 */}
+        {/* 오른쪽: 사용자 정보 */}
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{profile.name}</Text>
-          <Text style={styles.studentId}>({profile.studentId})</Text>
+          <Text style={styles.schoolInfo}>싸피대학교 / 컴퓨터공학과</Text>
+          <Text style={styles.userName}>{profile.name}({profile.studentId})</Text>
+          <TouchableOpacity 
+            style={styles.studentCardButton}
+            onPress={handleShowStudentCard}
+          >
+            <Image
+              source={require('@/assets/images/icons/qr.png')}
+              style={styles.qrIcon}
+              contentFit="contain"
+            />
+            <Text style={styles.studentCardText}>모바일 학생증</Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      {/* QR 모달 */}
+      {showQRModal && profile && (
+        <QRModal
+          visible={showQRModal}
+          onClose={handleCloseQRModal}
+          user={{
+            id: profile.id,
+            name: profile.name,
+            studentId: profile.studentId,
+            avatarId: profile.profileImage,
+            school: { id: '1', name: '싸피대학교' },
+            department: { id: 'dept_01', name: '컴퓨터공학과', schoolId: '1' }
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -66,7 +103,8 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
+    flexDirection: 'row', // 가로 정렬
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -76,7 +114,7 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginRight: 5, // 오른쪽 사용자 정보와의 간격
   },
   avatar: {
     width: 80,
@@ -105,17 +143,41 @@ const styles = StyleSheet.create({
     tintColor: 'white',
   },
   userInfo: {
-    alignItems: 'center',
+    flex: 1, // 남은 공간 모두 사용
+    alignItems: 'center', // 왼쪽 정렬
+  },
+  schoolInfo: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 4,
+    marginBottom: 12,
   },
-  studentId: {
+  studentCardButton: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8, // 입금하기 버튼과 동일한 radius
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf:'center', // 가운데 정렬
+    minWidth: 140, // 최소 너비 설정
+  },
+  qrIcon: {
+    width: 16,
+    height: 16,
+    marginRight: 8,
+    tintColor: '#6B7280',
+  },
+  studentCardText: {
     fontSize: 16,
     color: '#6B7280',
+    fontWeight: '600',
   },
   errorText: {
     fontSize: 16,

@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AccountHistorySection } from './components/AccountHistorySection';
 import { MyPageHeader } from './components/MyPageHeader';
 import { ProfileSection } from './components/ProfileSection';
-import { StudentCardSection } from './components/StudentCardSection';
 import { WalletSection } from './components/WalletSection';
-import { AccountHistorySection } from './components/AccountHistorySection';
 
 export const MyPageScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -31,9 +30,6 @@ export const MyPageScreen: React.FC = () => {
       >
         {/* 개인 프로필 섹션 */}
         <ProfileSection />
-
-        {/* 학생증 섹션 */}
-        <StudentCardSection />
 
         {/* 지갑 섹션 */}
         <WalletSection />

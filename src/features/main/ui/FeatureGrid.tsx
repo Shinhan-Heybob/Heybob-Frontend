@@ -16,9 +16,9 @@ const FEATURES: FeatureItem[] = [
 
   {
     id: 'meal-list',
-    label: '밥약 목록',
+    label: '채팅 목록',
     icon: require('@/assets/images/icons/meal-list.png'),
-    route: '/meals',
+    route: '/chatlist',
   },
   {
     id: 'meal-create',
@@ -69,8 +69,13 @@ const FEATURES: FeatureItem[] = [
 export const FeatureGrid: React.FC = () => {
   const handleFeaturePress = (route: string) => {
 
-    // 밥약 만들기와 모임 만들기는 실제 페이지로 이동
+    // 밥약 만들기, 모임 만들기, 채팅 목록은 실제 페이지로 이동
     if (route === '/meals/create' || route === '/groups/create') {
+      router.push(route);
+      return;
+    }
+    
+    if (route === '/chatlist') {
       router.push(route);
       return;
     }

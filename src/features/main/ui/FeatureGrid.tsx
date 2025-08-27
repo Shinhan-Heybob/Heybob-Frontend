@@ -89,6 +89,11 @@ export const FeatureGrid: React.FC = () => {
       router.push('/account-history');
       return;
     }
+
+      if (route === '/mypage') {
+      router.push('/mypage');
+      return;
+    }
     
     // 나머지는 임시로 알림만 표시 (실제 페이지들은 나중에 구현)
     console.log(`Navigate to: ${route}`);

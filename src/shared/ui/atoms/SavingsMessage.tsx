@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   mySavingsContent: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    maxWidth: '80%',
+    maxWidth: '100%',
   },
   mySavingsBubble: {
     backgroundColor: '#F3F4F6',

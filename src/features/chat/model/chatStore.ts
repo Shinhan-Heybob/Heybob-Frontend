@@ -46,6 +46,225 @@ interface ChatState {
   resetChatState: () => void;
 }
 
+// 밥약 채팅 목 데이터
+const getMockMealMessages = (roomId: string): ChatMessage[] => [
+  {
+    messageId: 'msg1',
+    roomId,
+    senderId: 'user1',
+    studentId: '1346671',
+    senderName: '이지민',
+    profileImageUrl: '',
+    content: '우리 오늘 학식 ㄱㄱ?',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 300000).toISOString(),
+  },
+  {
+    messageId: 'msg2',
+    roomId,
+    senderId: 'user2',
+    studentId: '2345671',
+    senderName: '이예린',
+    profileImageUrl: '',
+    content: '오늘 중식 불고기랬나?',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 240000).toISOString(),
+  },
+  {
+    messageId: 'msg3',
+    roomId,
+    senderId: 'system',
+    studentId: '',
+    senderName: '시스템',
+    profileImageUrl: '',
+    content: '박재은님이 입장했습니다',
+    messageType: 'JOIN',
+    timestamp: new Date(Date.now() - 180000).toISOString(),
+  },
+  {
+    messageId: 'msg4',
+    roomId,
+    senderId: 'user3',
+    studentId: '1346671',
+    senderName: '이지민',
+    profileImageUrl: '',
+    content: '오늘 나 육회비빔밥도 좀 땡기는데',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 150000).toISOString(),
+  },
+  {
+    messageId: 'msg5',
+    roomId,
+    senderId: 'currentUser',
+    studentId: '1346671',
+    senderName: '나',
+    profileImageUrl: '',
+    content: '그러면 육회고고 좋아',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 120000).toISOString(),
+  },
+  {
+    messageId: 'msg6',
+    roomId,
+    senderId: 'user1',
+    studentId: '1346671',
+    senderName: '이지민',
+    profileImageUrl: '',
+    content: '이지민님이 정산하기를 요청했습니다.',
+    messageType: 'PAYMENT_REQUEST',
+    timestamp: new Date(Date.now() - 90000).toISOString(),
+    paymentRequestData: {
+      settlementId: '66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4',
+      roomId,
+      requesterName: '이지민',
+      requestAmount: 12200,
+      settlementUrl: '/main/settlement/66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4'
+    },
+  },
+  {
+    messageId: 'msg7',
+    roomId,
+    senderId: 'user2',
+    studentId: '2345671',
+    senderName: '김철수',
+    profileImageUrl: '',
+    content: '김철수님이 정산을 완료했습니다.',
+    messageType: 'PAYMENT_COMPLETE',
+    timestamp: new Date(Date.now() - 60000).toISOString(),
+    paymentCompleteData: {
+      settlementId: '66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4',
+      roomId,
+      recipientId: '20000623',
+      recipientName: '김철수',
+      completedAmount: 12200
+    },
+  },
+];
+
+// 모임 채팅 목 데이터 
+const getMockGroupMessages = (roomId: string): ChatMessage[] => [
+  {
+    messageId: 'group_msg1',
+    roomId,
+    senderId: 'user1',
+    studentId: '1913998',
+    senderName: '김지은',
+    profileImageUrl: '',
+    content: '이번 달 적금 모으기 시작해요!',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 400000).toISOString(),
+  },
+  {
+    messageId: 'group_msg2',
+    roomId,
+    senderId: 'user2',
+    studentId: '1326123',
+    senderName: '이지민',
+    profileImageUrl: '',
+    content: '좋아요! 얼마씩 모을까요?',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 350000).toISOString(),
+  },
+  {
+    messageId: 'group_msg3',
+    roomId,
+    senderId: 'system',
+    studentId: '',
+    senderName: '시스템',
+    profileImageUrl: '',
+    content: '김미림님이 입장했습니다',
+    messageType: 'JOIN',
+    timestamp: new Date(Date.now() - 300000).toISOString(),
+  },
+  {
+    messageId: 'group_msg4',
+    roomId,
+    senderId: 'user3',
+    studentId: '234123',
+    senderName: '김미림',
+    profileImageUrl: '',
+    content: '한 달에 26000원씩 어때요?',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 250000).toISOString(),
+  },
+  {
+    messageId: 'group_msg5',
+    roomId,
+    senderId: 'user4',
+    studentId: '234123',
+    senderName: '박재은',
+    profileImageUrl: '',
+    content: '좋네요! 동의합니다',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 200000).toISOString(),
+  },
+  {
+    messageId: 'group_msg6',
+    roomId,
+    senderId: 'user1',
+    studentId: '1913998',
+    senderName: '김지은',
+    profileImageUrl: '',
+    content: '김지은님이 1/N 모으기를 요청했습니다.',
+    messageType: 'SAVINGS_REQUEST',
+    timestamp: new Date(Date.now() - 150000).toISOString(),
+    savingsRequestData: {
+      savingsId: 'savings_' + Date.now(),
+      roomId,
+      requesterName: '김지은',
+      requestAmount: 26000,
+      savingsUrl: '/groups/savings/savings_' + Date.now()
+    },
+  },
+  {
+    messageId: 'group_msg7',
+    roomId,
+    senderId: 'user2',
+    studentId: '1326123',
+    senderName: '이지민',
+    profileImageUrl: '',
+    content: '이지민님이 적금을 완료했습니다.',
+    messageType: 'SAVINGS_COMPLETE',
+    timestamp: new Date(Date.now() - 100000).toISOString(),
+    savingsCompleteData: {
+      savingsId: 'savings_' + Date.now(),
+      roomId,
+      participantId: '1326123',
+      participantName: '이지민',
+      completedAmount: 26000
+    },
+  },
+  {
+    messageId: 'group_msg8',
+    roomId,
+    senderId: 'user3',
+    studentId: '234123',
+    senderName: '김미림',
+    profileImageUrl: '',
+    content: '저도 완료했어요!',
+    messageType: 'CHAT',
+    timestamp: new Date(Date.now() - 50000).toISOString(),
+  },
+  {
+    messageId: 'group_msg9',
+    roomId,
+    senderId: 'user3',
+    studentId: '234123',
+    senderName: '김미림',
+    profileImageUrl: '',
+    content: '김미림님이 적금을 완료했습니다.',
+    messageType: 'SAVINGS_COMPLETE',
+    timestamp: new Date(Date.now() - 30000).toISOString(),
+    savingsCompleteData: {
+      savingsId: 'savings_' + Date.now(),
+      roomId,
+      participantId: '234123',
+      participantName: '김미림',
+      completedAmount: 26000
+    },
+  },
+];
+
 export const useChatStore = create<ChatState>((set, get) => ({
   // 초기 상태
   currentRoom: null,
@@ -224,100 +443,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       // TODO: 실제 API 호출로 교체
       // const response = await chatApi.getMessages({ roomId, before, limit: 20 });
       
+      // roomId로 밥약/모임 채팅 구분
+      const isGroupChat = roomId.startsWith('group_');
+      
       // 임시 목 데이터
-      const mockMessages: ChatMessage[] = [
-        {
-          messageId: 'msg1',
-          roomId,
-          senderId: 'user1',
-          studentId: '1346671',
-          senderName: '이지민',
-          profileImageUrl: '',
-          content: '우리 오늘 학식 ㄱㄱ?',
-          messageType: 'CHAT',
-          timestamp: new Date(Date.now() - 300000).toISOString(),
-        },
-        {
-          messageId: 'msg2',
-          roomId,
-          senderId: 'user2',
-          studentId: '2345671',
-          senderName: '이예린',
-          profileImageUrl: '',
-          content: '오늘 중식 불고기랬나?',
-          messageType: 'CHAT',
-          timestamp: new Date(Date.now() - 240000).toISOString(),
-        },
-        {
-          messageId: 'msg3',
-          roomId,
-          senderId: 'system',
-          studentId: '',
-          senderName: '시스템',
-          profileImageUrl: '',
-          content: '박재은님이 입장했습니다',
-          messageType: 'JOIN',
-          timestamp: new Date(Date.now() - 180000).toISOString(),
-        },
-        {
-          messageId: 'msg4',
-          roomId,
-          senderId: 'user3',
-          studentId: '1346671',
-          senderName: '이지민',
-          profileImageUrl: '',
-          content: '오늘 나 육회비빔밥도 좀 땡기는데',
-          messageType: 'CHAT',
-          timestamp: new Date(Date.now() - 150000).toISOString(),
-        },
-        {
-          messageId: 'msg5',
-          roomId,
-          senderId: 'currentUser',
-          studentId: '1346671',
-          senderName: '나',
-          profileImageUrl: '',
-          content: '그러면 육회고고 좋아',
-          messageType: 'CHAT',
-          timestamp: new Date(Date.now() - 120000).toISOString(),
-        },
-        {
-          messageId: 'msg6',
-          roomId,
-          senderId: 'user1',
-          studentId: '1346671',
-          senderName: '이지민',
-          profileImageUrl: '',
-          content: '이지민님이 정산하기를 요청했습니다.',
-          messageType: 'PAYMENT_REQUEST',
-          timestamp: new Date(Date.now() - 90000).toISOString(),
-          paymentRequestData: {
-            settlementId: '66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4',
-            roomId,
-            requesterName: '이지민',
-            requestAmount: 12200,
-            settlementUrl: '/main/settlement/66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4'
-          },
-        },
-        {
-          messageId: 'msg7',
-          roomId,
-          senderId: 'user2',
-          studentId: '2345671',
-          senderName: '김철수',
-          profileImageUrl: '',
-          content: '김철수님이 정산을 완료했습니다.',
-          messageType: 'PAYMENT_COMPLETE',
-          timestamp: new Date(Date.now() - 60000).toISOString(),
-          paymentCompleteData: {
-            settlementId: '66c5f1a2-b8d4-4e5f-a7b8-c9d0e1f2a3b4',
-            roomId,
-            recipientId: '20000623',
-            recipientName: '김철수',
-            completedAmount: 12200
-          },
-        },
-      ];
+      const mockMessages: ChatMessage[] = isGroupChat 
+        ? getMockGroupMessages(roomId)  // 모임 채팅 목 데이터
+        : getMockMealMessages(roomId);  // 밥약 채팅 목 데이터
 
       // 기존 메시지에 추가 (중복 제거)
       set((state) => {

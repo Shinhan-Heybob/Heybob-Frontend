@@ -198,13 +198,8 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
         params: { roomId }
       });
     } else {
-      // 모임 채팅: 1/N 모으기
-      console.log('1/N 모으기 클릭:', roomId);
-      // TODO: 적금 모으기 페이지 구현 후 활성화
-      // router.push({
-      //   pathname: '/collect-savings/[roomId]',
-      //   params: { roomId }
-      // });
+      // 모임 채팅: + 버튼 기능 없음
+      console.log('모임 채팅에서 + 버튼 클릭됨 - 기능 없음');
     }
   };
 

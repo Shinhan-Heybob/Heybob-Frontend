@@ -62,13 +62,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         {/* 드롭다운 메뉴 */}
         {isDropdownVisible && (
           <View style={styles.dropdown}>
-            <TouchableOpacity 
-              style={styles.menuItem} 
-              onPress={() => handleMenuItemPress('main')}
-            >
-              <Text style={styles.menuItemText}>{getMainMenuText()}</Text>
-            </TouchableOpacity>
-            <View style={styles.menuSeparator} />
+            {chatType === 'meal' && (
+              <>
+                <TouchableOpacity 
+                  style={styles.menuItem} 
+                  onPress={() => handleMenuItemPress('main')}
+                >
+                  <Text style={styles.menuItemText}>{getMainMenuText()}</Text>
+                </TouchableOpacity>
+                <View style={styles.menuSeparator} />
+              </>
+            )}
             <TouchableOpacity 
               style={styles.menuItem} 
               onPress={() => handleMenuItemPress('cafeteria')}

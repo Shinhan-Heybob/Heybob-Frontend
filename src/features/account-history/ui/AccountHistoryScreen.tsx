@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Text, SectionList, Alert } from 'react-native';
+import { View, StyleSheet, Text, SectionList, Alert, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccountHistoryStore } from '../model/accountHistoryStore';
 import { AccountHistoryHeader } from './components/AccountHistoryHeader';
@@ -9,6 +9,11 @@ import type { FormattedTransaction, DateSection } from '../model/types';
 
 export const AccountHistoryScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
+  
+  // 화면 높이에서 하단 탭바 높이(83px)를 뺀 사용 가능한 높이 계산
+  const screenHeight = Dimensions.get('window').height;
+  const tabBarHeight = 83;
+  const availableHeight = screenHeight - tabBarHeight;
   const {
     dateRange,
     totalCount,
@@ -59,7 +64,7 @@ export const AccountHistoryScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height: availableHeight }]}>
       {/* 헤더 */}
       <AccountHistoryHeader />
 

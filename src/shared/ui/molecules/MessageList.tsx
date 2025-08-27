@@ -2,17 +2,20 @@ import { getMessageCategory, isMyMessage } from '@/src/features/chat/lib/utils';
 import type { ChatMessage } from '@/src/features/chat/model/types';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { InfoMessage } from '../atoms/InfoMessage';
 import { MessageBubble } from '../atoms/MessageBubble';
 import { NotificationMessage } from '../atoms/NotificationMessage';
 import { PaymentMessage } from '../atoms/PaymentMessage';
+import { SavingsMessage } from '../atoms/SavingsMessage';
 
-interface MessageListProps {
+export interface MessageListProps {
   messages: ChatMessage[];
   currentUserId: string;
   isLoading?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
   onPaymentPress?: (message: ChatMessage) => void;
+  onSavingsPress?: (message: ChatMessage) => void;
   onNewMessageReceived?: () => void;
   onScrollNearBottom?: () => void;
 }
@@ -24,6 +27,7 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
   hasMore = true,
   onLoadMore,
   onPaymentPress,
+  onSavingsPress,
   onNewMessageReceived,
   onScrollNearBottom,
 }, ref) => {
@@ -60,14 +64,14 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
     const lastMessage = messages[messages.length - 1];
     const isNewMessage = lastMessage.timestamp > previousLatestTimestamp;
     
-    console.log('📱 MessageList Auto-Scroll Debug:', {
-      messagesLength: messages.length,
-      lastMessageTime: lastMessage.timestamp,
-      previousTime: previousLatestTimestamp,
-      isNewMessage,
-      isNearBottom,
-      shouldScroll: isNewMessage && (isNearBottom || previousLatestTimestamp === '')
-    });
+    // console.log('📱 MessageList Auto-Scroll Debug:', {
+    //   messagesLength: messages.length,
+    //   lastMessageTime: lastMessage.timestamp,
+    //   previousTime: previousLatestTimestamp,
+    //   isNewMessage,
+    //   isNearBottom,
+    //   shouldScroll: isNewMessage && (isNearBottom || previousLatestTimestamp === '')
+    // });
     
     // 이전 최신 timestamp 업데이트
     setPreviousLatestTimestamp(lastMessage.timestamp);
@@ -110,6 +114,23 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
             message={message}
             isMyMessage={isMine}
             onPaymentPress={onPaymentPress}
+          />
+        );
+
+      case 'savings':
+        return (
+          <SavingsMessage
+            message={message}
+            isMyMessage={isMine}
+            onSavingsPress={onSavingsPress}
+          />
+        );
+
+      case 'info':
+        return (
+          <InfoMessage
+            message={message}
+            isMyMessage={isMine}
           />
         );
 

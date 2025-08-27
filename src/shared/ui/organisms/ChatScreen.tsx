@@ -1,22 +1,26 @@
+import { useChatStore } from '@/src/features/chat/model/chatStore';
+import type { ChatMessage, ChatRoom, CurrentUser } from '@/src/features/chat/model/types';
+import { ChatHeader } from '@/src/features/chat/ui/components/ChatHeader';
 import { MessageInput } from '@/src/shared/ui/atoms/MessageInput';
 import { MessageList } from '@/src/shared/ui/molecules/MessageList';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useChatStore } from '../model/chatStore';
-import type { ChatMessage, ChatRoom, CurrentUser } from '../model/types';
-import { ChatHeader } from './components/ChatHeader';
 
-interface ChatScreenProps {
+export type ChatType = 'meal' | 'group';
+
+interface SharedChatScreenProps {
   roomId: string;
   currentUser: CurrentUser;
   roomInfo?: ChatRoom;
+  chatType: ChatType;
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({
+export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
   roomId,
   currentUser,
   roomInfo,
+  chatType,
 }) => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [hasInteractedWithKeyboard, setHasInteractedWithKeyboard] = useState(false);
@@ -32,6 +36,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     connect,
     disconnect,
     sendMessage,
+    sendTypedMessage,
+    sendCafeteriaInfoRequest,
     loadMessages,
     setCurrentUser,
     setCurrentRoom,
@@ -69,9 +75,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       setCurrentRoom(roomInfo);
     } else {
       // 기본 채팅방 정보
+      const defaultTitle = chatType === 'meal' ? '학식 먹으러 가는 팟' : '모임 채팅방';
       setCurrentRoom({
         roomId,
-        title: '학식 먹으러 가는 팟',
+        title: defaultTitle,
         participantCount: 4,
       });
     }
@@ -86,7 +93,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     return () => {
       disconnect();
     };
-  }, [roomId, currentUser, roomInfo]);
+  }, [roomId, currentUser, roomInfo, chatType]);
 
   // 에러 처리
   useEffect(() => {
@@ -111,7 +118,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   };
 
-  // 결제 버튼 클릭
+  // 결제 버튼 클릭 (밥약용)
   const handlePaymentPress = (message: ChatMessage) => {
     if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
       router.push({
@@ -125,16 +132,36 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   };
 
+  // 적금 버튼 클릭 (모임용)
+  const handleSavingsPress = (message: ChatMessage) => {
+    if (message.messageType === 'SAVINGS_REQUEST' && message.savingsRequestData) {
+      router.push({
+        pathname: '/savings-confirm/[roomId]',
+        params: {
+          roomId: roomId,
+          amount: message.savingsRequestData.requestAmount.toString(),
+          messageId: message.messageId
+        }
+      });
+    }
+  };
+
   // 뒤로가기
   const handleBackPress = () => {
     router.replace('/(main)');
   };
 
-  // 밥약 정보 보기
-  const handleMealInfoPress = () => {
-    // TODO: 실제로는 현재 채팅방과 연결된 mealId를 사용해야 함
-    const mealId = 'meal-123'; // 임시 ID
-    router.push(`/meal-info/${mealId}`);
+  // 정보 보기 (밥약 정보 or 모임 정보)
+  const handleInfoPress = () => {
+    if (chatType === 'meal') {
+      // 밥약 정보 보기
+      const mealId = 'meal-123'; // 실제로는 현재 채팅방과 연결된 mealId 사용
+      router.push(`/meal-info/${mealId}`);
+    } else {
+      // 모임 정보 보기
+      const groupId = roomId.replace('group_', ''); // 실제로는 roomId에서 groupId 추출
+      router.push(`/groups/${groupId}/info`);
+    }
   };
 
   const isConnected = connectionStatus === 'connected';
@@ -154,40 +181,40 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     return keyboardVisible ? 0 : 0; // 키보드 사용 경험 후: 항상 0
   };
 
-  // 개발용 테스트 함수들
-  const addTestMessage = () => {
-    const testMessage: ChatMessage = {
-      messageId: 'test_' + Date.now(),
-      roomId: roomId,
-      senderId: 'other_user',
-      studentId: '9999999',
-      senderName: '테스트유저',
-      profileImageUrl: '',
-      content: '테스트 메시지입니다 ' + new Date().getSeconds() + '초',
-      messageType: 'CHAT',
-      timestamp: new Date().toISOString(),
-    };
-    addMessage(testMessage);
-  };
-
-  const loadHistoryTest = () => {
-    if (messages.length > 0) {
-      loadMessages(roomId, messages[0]?.messageId);
-    }
-  };
-
   // 새 메시지 보기 버튼 클릭
   const handleNewMessageButtonPress = () => {
     setHasNewMessage(false);
     messageListRef.current?.scrollToEnd({ animated: true });
   };
 
-  // + 버튼 클릭 (1/N 요청하기)
+  // + 버튼 클릭 시 메뉴 표시
   const handlePlusButtonPress = () => {
-    router.push({
-      pathname: '/split-bill/[roomId]',
-      params: { roomId }
-    });
+    if (chatType === 'meal') {
+      // 밥약 채팅: 1/N 정산하기
+      console.log('1/N 정산하기 클릭:', roomId);
+      // TODO: 정산 페이지 구현 후 활성화
+      router.push({
+        pathname: '/split-bill/[roomId]',
+        params: { roomId }
+      });
+    } else {
+      // 모임 채팅: + 버튼 기능 없음
+      console.log('모임 채팅에서 + 버튼 클릭됨 - 기능 없음');
+    }
+  };
+
+  // 학식 정보 보기 (공통)
+  const handleCafeteriaInfoPress = () => {
+    sendCafeteriaInfoRequest();
+  };
+
+  const getHeaderTitle = () => {
+    if (roomInfo?.title) return roomInfo.title;
+    return chatType === 'meal' ? '학식 먹으러 가는 팟' : '모임 채팅방';
+  };
+
+  const getHeaderButtonText = () => {
+    return chatType === 'meal' ? '밥약 정보 보러가기' : '모임 정보 보러가기';
   };
 
   return (
@@ -198,9 +225,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     >
       {/* 헤더 */}
       <ChatHeader
-        roomTitle={roomInfo?.title || '학식 먹으러 가는 팟'}
+        roomTitle={getHeaderTitle()}
         onBackPress={handleBackPress}
-        onMealInfoPress={handleMealInfoPress}
+        onMealInfoPress={handleInfoPress}
+        buttonText={getHeaderButtonText()}
       />
 
       {/* 메시지 리스트 */}
@@ -212,6 +240,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         hasMore={hasMoreMessages}
         onLoadMore={handleLoadMore}
         onPaymentPress={handlePaymentPress}
+        onSavingsPress={handleSavingsPress}
         onNewMessageReceived={() => setHasNewMessage(true)}
         onScrollNearBottom={() => setHasNewMessage(false)}
       />
@@ -233,6 +262,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           placeholder={isConnected ? '메시지 입력...' : '연결 중...'}
           disabled={isInputDisabled}
           onPlusButtonPress={handlePlusButtonPress}
+          onCafeteriaInfoPress={handleCafeteriaInfoPress}
+          chatType={chatType}
         />
       </View>
 
@@ -247,25 +278,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         <View style={[styles.statusBar, styles.errorBar]}>
           <Text style={[styles.statusText, styles.errorText]}>연결 실패</Text>
         </View>
-      )}
-
-      {/* 개발용 테스트 버튼들 */}
-      {__DEV__ && (
-        <>
-          <TouchableOpacity 
-            style={styles.testButton}
-            onPress={addTestMessage}
-          >
-            <Text style={styles.testButtonText}>새 메시지</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.testButton, { right: 120 }]}
-            onPress={loadHistoryTest}
-          >
-            <Text style={styles.testButtonText}>히스토리</Text>
-          </TouchableOpacity>
-        </>
       )}
     </KeyboardAvoidingView>
   );
@@ -300,21 +312,6 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     // paddingBottom은 동적으로 적용됨
-  },
-  testButton: {
-    position: 'absolute',
-    top: 100,
-    right: 20,
-    backgroundColor: '#FF4444',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    zIndex: 1000,
-  },
-  testButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
   },
   newMessageButton: {
     position: 'absolute',

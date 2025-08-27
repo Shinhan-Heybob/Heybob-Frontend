@@ -29,9 +29,7 @@ export const GroupInfoDetailScreen: React.FC<GroupInfoDetailScreenProps> = ({ gr
 
   // 채팅방 입장
   const handleEnterChat = () => {
-    // TODO: 채팅방 페이지로 이동
-    console.log('채팅방 입장:', groupId);
-    // router.push(`/chat/${groupId}`);
+    router.push(`/groups/${groupId}/chat`);
   };
 
   // 통화 포맷팅

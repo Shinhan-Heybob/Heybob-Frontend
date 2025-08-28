@@ -11,6 +11,7 @@ interface MessageInputProps {
   disabled?: boolean;
   onPlusButtonPress?: () => void;
   onCafeteriaInfoPress?: () => void;
+  onAiChatbotPress?: () => void;
   chatType?: ChatType;
 }
 
@@ -20,6 +21,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   disabled = false,
   onPlusButtonPress,
   onCafeteriaInfoPress,
+  onAiChatbotPress,
   chatType = 'meal',
 }) => {
   const [message, setMessage] = useState('');
@@ -43,11 +45,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setIsDropdownVisible(false);
   };
 
-  const handleMenuItemPress = (action: 'main' | 'cafeteria') => {
+  const handleMenuItemPress = (action: 'main' | 'cafeteria' | 'ai') => {
     if (action === 'main') {
       onPlusButtonPress?.();
     } else if (action === 'cafeteria') {
       onCafeteriaInfoPress?.();
+    } else if (action === 'ai') {
+      onAiChatbotPress?.();
     }
     setIsDropdownVisible(false);
   };
@@ -78,6 +82,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
               onPress={() => handleMenuItemPress('cafeteria')}
             >
               <Text style={styles.menuItemText}>학식 정보 보기</Text>
+            </TouchableOpacity>
+            <View style={styles.menuSeparator} />
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleMenuItemPress('ai')}
+            >
+              <Text style={styles.menuItemText}>🤖 AI 챗봇 문의하기</Text>
             </TouchableOpacity>
           </View>
         )}

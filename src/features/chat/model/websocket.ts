@@ -10,7 +10,7 @@ export class ChatWebSocketService {
 
   constructor() {
     this.client = new Client({
-      brokerURL: 'ws://localhost:8081/ws',
+      webSocketFactory: () => new (require('sockjs-client'))(__DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws'),
       connectHeaders: {},
       debug: (str) => {
         console.log('[STOMP Debug]:', str);

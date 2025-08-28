@@ -2,6 +2,7 @@ import { getMessageCategory, isMyMessage } from '@/src/features/chat/lib/utils';
 import type { ChatMessage } from '@/src/features/chat/model/types';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { AiMessageBubble } from '../atoms/AiMessageBubble';
 import { InfoMessage } from '../atoms/InfoMessage';
 import { MessageBubble } from '../atoms/MessageBubble';
 import { NotificationMessage } from '../atoms/NotificationMessage';
@@ -129,6 +130,14 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
       case 'info':
         return (
           <InfoMessage
+            message={message}
+            isMyMessage={isMine}
+          />
+        );
+
+      case 'ai':
+        return (
+          <AiMessageBubble
             message={message}
             isMyMessage={isMine}
           />

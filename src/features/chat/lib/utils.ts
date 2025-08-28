@@ -1,7 +1,7 @@
 import type { MessageType } from '../model/types';
 
 // 메시지 카테고리 분류
-export type MessageCategory = 'chat' | 'notification' | 'payment' | 'savings' | 'info' | 'unknown';
+export type MessageCategory = 'chat' | 'notification' | 'payment' | 'savings' | 'info' | 'ai' | 'unknown';
 
 export const getMessageCategory = (messageType: MessageType): MessageCategory => {
   if (messageType === 'CHAT') return 'chat';
@@ -9,6 +9,7 @@ export const getMessageCategory = (messageType: MessageType): MessageCategory =>
   if (['PAYMENT_REQUEST', 'PAYMENT_CONFIRM', 'PAYMENT_COMPLETE'].includes(messageType)) return 'payment';
   if (['SAVINGS_REQUEST', 'SAVINGS_COMPLETE'].includes(messageType)) return 'savings';
   if (messageType === 'CAFETERIA_INFO') return 'info';
+  if (['AI_BOT_REQUEST', 'AI_BOT_RESPONSE'].includes(messageType)) return 'ai';
   return 'unknown';
 };
 

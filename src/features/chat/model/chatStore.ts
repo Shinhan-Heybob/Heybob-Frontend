@@ -7,7 +7,24 @@ import type {
   CurrentUser,
   SendMessageRequest
 } from './types';
-import { chatWebSocketService } from './websocket';
+import ChatService, { MessageType, ChatMessageResponse } from '../services/ChatService';
+
+// ChatMessageResponse를 ChatMessage로 변환하는 함수
+const convertToChatMessage = (response: ChatMessageResponse): ChatMessage => {
+  return {
+    messageId: response.messageId,
+    roomId: response.roomId,
+    senderId: response.senderId,
+    studentId: response.studentId,
+    senderName: response.senderName,
+    profileImageUrl: response.profileImageUrl,
+    content: response.content,
+    messageType: response.messageType as keyof typeof MessageType,
+    timestamp: response.timestamp,
+    paymentRequestData: response.paymentRequestData,
+    paymentCompleteData: response.paymentCompleteData,
+  };
+};
 
 interface ChatState {
   // 채팅방 정보
@@ -37,6 +54,7 @@ interface ChatState {
   sendMessage: (content: string) => void;
   sendTypedMessage: (messageData: SendMessageRequest) => void;
   sendCafeteriaInfoRequest: () => void;
+  sendAiQuestion: (question: string) => void;
   addMessage: (message: ChatMessage) => void;
   loadMessages: (roomId: string, before?: string) => Promise<void>;
   
@@ -285,7 +303,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ currentRoom: room });
   },
 
-  // WebSocket 연결 (임시 비활성화 - 목 데이터 테스트용)
+  // WebSocket 연결
   connect: (user: CurrentUser, roomId: string) => {
     const state = get();
     
@@ -300,34 +318,79 @@ export const useChatStore = create<ChatState>((set, get) => ({
       error: null 
     });
 
-    // 임시: WebSocket 연결 대신 바로 connected 상태로 설정
-    setTimeout(() => {
-      set({ connectionStatus: 'connected' });
-    }, 1000);
-
-    // TODO: 백엔드 준비되면 WebSocket 연결 활성화
-    /*
-    // WebSocket 이벤트 핸들러 등록
-    chatWebSocketService.onConnectionStatus((status) => {
-      set({ connectionStatus: status });
+    // ChatService 이벤트 핸들러 등록
+    ChatService.setOnMessageReceived((message) => {
+      const chatMessage = convertToChatMessage(message);
+      get().addMessage(chatMessage);
     });
 
-    chatWebSocketService.onMessage((message) => {
-      get().addMessage(message);
+    ChatService.setOnErrorReceived((error) => {
+      set({ 
+        connectionStatus: 'error',
+        error: {
+          code: 'WEBSOCKET_ERROR',
+          message: error.message || '연결 오류가 발생했습니다'
+        }
+      });
     });
 
-    // 연결 시작
-    chatWebSocketService.connect(user, roomId);
-    */
+    // 연결 시작 (개발 환경에서는 기본값 사용)
+    try {
+      console.log('🔍 ChatStore 연결 시 사용자 정보:', {
+        userId: user.userId,
+        userName: user.userName,
+        studentId: user.studentId,
+        roomId: roomId
+      });
+      
+      ChatService.connect(
+        user.userId,
+        user.userName, 
+        user.studentId,
+        roomId,
+        __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws'
+      );
+      
+      // 연결 상태 체크
+      const checkConnection = setInterval(() => {
+        if (ChatService.isConnected()) {
+          set({ connectionStatus: 'connected' });
+          clearInterval(checkConnection);
+        }
+      }, 500);
+      
+      // 타임아웃 설정 (10초)
+      setTimeout(() => {
+        if (!ChatService.isConnected()) {
+          clearInterval(checkConnection);
+          set({ 
+            connectionStatus: 'error',
+            error: {
+              code: 'CONNECTION_TIMEOUT',
+              message: '연결 시간이 초과되었습니다'
+            }
+          });
+        }
+      }, 10000);
+      
+    } catch (error: any) {
+      set({ 
+        connectionStatus: 'error',
+        error: {
+          code: 'CONNECTION_FAILED',
+          message: error.message || '연결에 실패했습니다'
+        }
+      });
+    }
   },
 
   // WebSocket 연결 해제
   disconnect: () => {
-    chatWebSocketService.disconnect();
+    ChatService.disconnect();
     set({ connectionStatus: 'disconnected' });
   },
 
-  // 메시지 전송 (임시 목 데이터 추가)
+  // 메시지 전송
   sendMessage: (content: string) => {
     const { currentRoom, currentUser, connectionStatus } = get();
     
@@ -336,30 +399,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
-    // 임시: 로컬에서 메시지 바로 추가
-    const newMessage: ChatMessage = {
-      messageId: 'msg_' + Date.now(),
-      roomId: currentRoom.roomId,
-      senderId: currentUser.userId,
-      studentId: currentUser.studentId,
-      senderName: currentUser.userName,
-      profileImageUrl: currentUser.profileImageUrl || '',
-      content: content.trim(),
-      messageType: 'CHAT',
-      timestamp: new Date().toISOString(),
-    };
-
-    get().addMessage(newMessage);
-
-    // TODO: 백엔드 준비되면 WebSocket으로 전송
-    /*
-    const messageData: SendMessageRequest = {
-      content: content.trim(),
-      messageType: 'CHAT',
-    };
-
-    chatWebSocketService.sendMessage(messageData, currentRoom.roomId);
-    */
+    // ChatService를 통해 메시지 전송
+    const success = ChatService.sendMessage(currentRoom.roomId, content.trim(), MessageType.CHAT);
+    
+    if (!success) {
+      set({ 
+        error: {
+          code: 'SEND_MESSAGE_ERROR',
+          message: '메시지 전송에 실패했습니다'
+        }
+      });
+    }
   },
 
   // 타입별 메시지 전송
@@ -387,36 +437,39 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return;
     }
 
-    // 목 데이터로 학식 정보 메시지 생성
-    const cafeteriaInfoMessage: ChatMessage = {
-      messageId: 'cafeteria_' + Date.now(),
-      roomId: currentRoom.roomId,
-      senderId: 'system_cafeteria_bot',
-      studentId: '',
-      senderName: '학식 정보 봇',
-      profileImageUrl: '',
-      content: `📍 오늘의 학식 정보
-      
-🍽️ 중식 (11:30-14:00)
-• 돈까스 정식 - 4,500원
-• 김치찌개 정식 - 4,000원  
-• 불고기 덮밥 - 4,800원
+    // ChatService를 통해 학식 정보 요청
+    const success = ChatService.getCafeteriaInfo(currentRoom.roomId);
+    
+    if (!success) {
+      set({ 
+        error: {
+          code: 'CAFETERIA_REQUEST_ERROR',
+          message: '학식 정보 요청에 실패했습니다'
+        }
+      });
+    }
+  },
 
-🍜 석식 (17:30-19:30)
-• 치킨마요 덮밥 - 5,000원
-• 된장찌개 정식 - 3,800원
-• 제육볶음 정식 - 4,500원
+  // AI 질문 전송
+  sendAiQuestion: (question: string) => {
+    const { currentRoom, currentUser, connectionStatus } = get();
+    
+    if (!currentRoom || !currentUser || connectionStatus !== 'connected') {
+      console.error('Cannot send AI question: not ready');
+      return;
+    }
 
-📞 문의: 학생식당 02-123-4567`,
-      messageType: 'CAFETERIA_INFO',
-      timestamp: new Date().toISOString(),
-    };
-
-    // 메시지 추가
-    get().addMessage(cafeteriaInfoMessage);
-
-    // TODO: 백엔드 준비되면 전용 엔드포인트로 요청
-    // chatWebSocketService.sendCafeteriaInfoRequest(currentRoom.roomId);
+    // ChatService를 통해 AI 질문 전송
+    const success = ChatService.sendAiQuestion(currentRoom.roomId, question);
+    
+    if (!success) {
+      set({ 
+        error: {
+          code: 'AI_QUESTION_ERROR',
+          message: 'AI 질문 전송에 실패했습니다'
+        }
+      });
+    }
   },
 
   // 메시지 추가 (실시간 수신)
@@ -435,13 +488,49 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  // 채팅 히스토리 로드 (임시 구현 - 나중에 API 연결)
+  // 채팅 히스토리 로드
   loadMessages: async (roomId: string, before?: string) => {
     set({ isLoadingMessages: true, error: null });
 
     try {
-      // TODO: 실제 API 호출로 교체
-      // const response = await chatApi.getMessages({ roomId, before, limit: 20 });
+      const { currentUser } = get();
+      
+      if (!currentUser) {
+        throw new Error('사용자 정보가 없습니다');
+      }
+
+      // ChatService를 통해 히스토리 로드
+      let historyResponse;
+      if (before) {
+        historyResponse = await ChatService.fetchChatHistoryBefore(roomId, currentUser.userId, before);
+      } else {
+        historyResponse = await ChatService.fetchChatHistory(roomId, currentUser.userId);
+      }
+
+      // 새로운 API 응답 구조 처리: {messages: [], hasMore: boolean, ...}
+      const messages = historyResponse?.messages || historyResponse || [];
+      const hasMore = historyResponse?.hasMore ?? (messages.length > 0);
+
+      console.log('API 응답 처리:', { historyResponse, messages: messages.length, hasMore });
+
+      // 기존 메시지에 추가 (중복 제거)
+      set((state) => {
+        const existingIds = new Set(state.messages.map(msg => msg.messageId));
+        const newMessages = Array.isArray(messages) ? messages.filter((msg: ChatMessage) => !existingIds.has(msg.messageId)) : [];
+        const allMessages = [...newMessages, ...state.messages].sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
+        return {
+          messages: allMessages,
+          isLoadingMessages: false,
+          hasMoreMessages: hasMore,
+        };
+      });
+
+    } catch (error: any) {
+      // API 실패 시 목 데이터 사용
+      console.log('API 로드 실패, 목 데이터 사용:', error.message);
       
       // roomId로 밥약/모임 채팅 구분
       const isGroupChat = roomId.startsWith('group_');
@@ -462,17 +551,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return {
           messages: allMessages,
           isLoadingMessages: false,
-          hasMoreMessages: before ? false : true, // 첫 로드가 아니면 더 이상 없음
+          hasMoreMessages: before ? false : true,
         };
-      });
-
-    } catch (error: any) {
-      set({
-        error: {
-          code: 'LOAD_MESSAGES_ERROR',
-          message: error.message || '메시지를 불러오는데 실패했습니다',
-        },
-        isLoadingMessages: false,
       });
     }
   },

@@ -15,21 +15,21 @@ export const mypageApi = {
 
   // 계좌번호 조회
   getAccountNo: async (): Promise<{ success: boolean; data: AccountNoResponse; error?: string }> => {
-    // Mock API - 실제 구현시 아래 주석 해제
-    // return apiClient.get<AccountNoResponse>('/api/account/person/no');
-    
-    // 개발용 Mock API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
     try {
-      const mockData: AccountNoResponse = {
-        accountNo: '0883812793854573'
-      };
-
-      return {
-        success: true,
-        data: mockData
-      };
+      const response = await apiClient.get<AccountNoResponse>('/account/personal/no');
+      
+      if (response.success && response.data) {
+        return {
+          success: true,
+          data: response.data as AccountNoResponse
+        };
+      } else {
+        return {
+          success: false,
+          data: { accountNo: '' },
+          error: response.error || '계좌번호를 불러오는데 실패했습니다'
+        };
+      }
     } catch (error) {
       return {
         success: false,
@@ -41,26 +41,33 @@ export const mypageApi = {
 
   // 입금 처리
   deposit: async (request: DepositRequest): Promise<{ success: boolean; data: DepositResponse; error?: string }> => {
-    // Mock API - 실제 구현시 실제 엔드포인트로 변경
-    // return apiClient.post<DepositResponse>('/api/account/deposit', request);
-    
-    // 개발용 Mock API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
     try {
       if (request.amount <= 0) {
-        throw new Error('입금액은 0보다 커야 합니다');
+        return {
+          success: false,
+          data: { success: false, message: '' },
+          error: '입금액은 0보다 커야 합니다'
+        };
       }
 
-      const mockResponse: DepositResponse = {
-        success: true,
-        message: `${request.amount.toLocaleString()}원이 입금되었습니다`
-      };
-
-      return {
-        success: true,
-        data: mockResponse
-      };
+      const response = await apiClient.post('/account/deposit', request);
+      
+      // 빈 객체 응답도 성공으로 처리
+      if (response.success) {
+        return {
+          success: true,
+          data: {
+            success: true,
+            message: `${request.amount.toLocaleString()}원이 입금되었습니다`
+          }
+        };
+      } else {
+        return {
+          success: false,
+          data: { success: false, message: '' },
+          error: response.error || '입금 처리에 실패했습니다'
+        };
+      }
     } catch (error) {
       return {
         success: false,

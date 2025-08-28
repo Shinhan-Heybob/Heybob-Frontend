@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { mypageApi } from '../../api/mypageApi';
 import { DepositModal } from './DepositModal';
+import { useAccountStore } from '@/src/entities/account/model/accountStore';
 
 export const WalletSection: React.FC = () => {
   const [accountNo, setAccountNo] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const { fetchBalance } = useAccountStore();
 
   // 컴포넌트 마운트 시 계좌번호 로드
   useEffect(() => {
@@ -40,9 +42,10 @@ export const WalletSection: React.FC = () => {
     setShowDepositModal(true);
   };
 
-  const handleDepositSuccess = () => {
-    // 입금 성공 시 필요한 추가 작업 (계좌내역 새로고침 등)
-    console.log('입금 성공 - 계좌내역 새로고침 필요');
+  const handleDepositSuccess = async () => {
+    // 입금 성공 시 메인화면의 잔액 새로고침
+    console.log('입금 성공 - 잔액 새로고침');
+    await fetchBalance();
   };
 
   return (

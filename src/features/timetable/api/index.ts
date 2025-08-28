@@ -1,7 +1,7 @@
 // 시간표 전용 API 클라이언트
 
 import { TimetableCreateRequest, TimetableResponse, LectureCreateRequest, LectureUpdateRequest, ApiError } from '../types';
-
+import { storage } from '@/src/shared/lib/storage';
 // API 기본 설정
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -20,26 +20,43 @@ export class TimetableApi {
   static async createTimetable(data: TimetableCreateRequest): Promise<ApiResponse<TimetableResponse>> {
     try {
       console.log('🌐 시간표 생성 API 요청:', data);
+
+      const token = await storage.getToken(); // 토큰 저장 방식에 따라 수정
+
+          if (!token) {
+            return {
+              success: false,
+              error: '로그인이 필요합니다.'
+            };
+          }
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      // const result = await response.json();
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockResponse: TimetableResponse = {
-        id: Date.now(),
-        timeTableName: data.timeTableName,
-        lectures: []
-      };
-      
-      console.log('✅ 시간표 생성 성공:', mockResponse);
-      return { success: true, data: mockResponse };
+      //TODO: 실제 API 연동시 아래 주석 해제
+      const response = await fetch(`${API_BASE_URL}/timetable`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' ,
+                'Authorization': 'Bearer ${token}'
+            },
+        body: JSON.stringify(data)
+      });
+
+      // HTTP 상태 코드 확인
+          if (!response.ok) {
+            if (response.status === 401) {
+              return {
+                success: false,
+                error: '인증이 만료되었습니다. 다시 로그인해주세요.'
+              };
+            }
+            return {
+              success: false,
+              error: `서버 오류: ${response.status}`
+            };
+          }
+
+          const result: TimetableResponse = await response.json();
+
+      console.log('✅ 시간표 생성 성공:', result);
+      return { success: true, data: result};
       
     } catch (error) {
       console.error('❌ 시간표 생성 실패:', error);
@@ -54,83 +71,50 @@ export class TimetableApi {
   static async getTimetable(timeTableId: number): Promise<ApiResponse<TimetableResponse>> {
     try {
       console.log('🌐 시간표 조회 API 요청:', timeTableId);
-      
+
+      const token = await storage.getToken();// 토큰 저장 방식에 따라 수정
+              if (!token) {
+                  return {
+                    success: false,
+                    error: '로그인이 필요합니다.'
+                  };
+              }
+
       // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/${timeTableId}`);
-      // const result = await response.json();
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockResponse: TimetableResponse = {
-        id: timeTableId,
-        timeTableName: '내 시간표',
-        lectures: [
-          {
-            lectureId: 1,
-            lectureName: '데이터구조',
-            subjectCode: 'CS101',
-            dayOfWeek: '월',
-            startTime: '09:00',
-            endTime: '10:30',
-            classroom: '공학관 301호',
-            professor: '김교수'
-          },
-          {
-            lectureId: 2,
-            lectureName: '알고리즘',
-            subjectCode: 'CS201',
-            dayOfWeek: '월',
-            startTime: '14:00',
-            endTime: '15:30',
-            classroom: '공학관 302호',
-            professor: '이교수'
-          },
-          {
-            lectureId: 3,
-            lectureName: '웹프로그래밍',
-            subjectCode: 'CS301',
-            dayOfWeek: '화',
-            startTime: '10:00',
-            endTime: '12:00',
-            classroom: '공학관 303호',
-            professor: '박교수'
-          },
-          {
-            lectureId: 4,
-            lectureName: '데이터베이스',
-            subjectCode: 'CS401',
-            dayOfWeek: '수',
-            startTime: '13:00',
-            endTime: '14:30',
-            classroom: '공학관 304호',
-            professor: '최교수'
-          },
-          {
-            lectureId: 5,
-            lectureName: '소프트웨어공학',
-            subjectCode: 'CS501',
-            dayOfWeek: '목',
-            startTime: '15:00',
-            endTime: '16:30',
-            classroom: '공학관 305호',
-            professor: '정교수'
-          },
-          {
-            lectureId: 6,
-            lectureName: '운영체제',
-            subjectCode: 'CS601',
-            dayOfWeek: '금',
-            startTime: '11:00',
-            endTime: '12:30',
-            classroom: '공학관 306호',
-            professor: '윤교수'
+      const response = await fetch(`${API_BASE_URL}/timetable/${timeTableId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // JWT 토큰 헤더 추가[236][237]
+            }
+          });
+
+      // HTTP 상태 코드 확인
+          if (!response.ok) {
+            if (response.status === 401) {
+              return {
+                success: false,
+                error: '인증이 만료되었습니다. 다시 로그인해주세요.'
+              };
+            } else if (response.status === 404) {
+              return {
+                success: false,
+                error: '해당 시간표를 찾을 수 없습니다.'
+              };
+            }
+
+            const errorText = await response.text();
+            console.error('서버 오류:', errorText);
+            return {
+              success: false,
+              error: `서버 오류: ${response.status}`
+            };
           }
-        ]
-      };
+
+      const result: TimetableResponse = await response.json();
       
-      console.log('✅ 시간표 조회 성공:', mockResponse);
-      return { success: true, data: mockResponse };
+      console.log('✅ 시간표 조회 성공:', result);
+      return { success: true, data: result };
       
     } catch (error) {
       console.error('❌ 시간표 조회 실패:', error);
@@ -145,14 +129,26 @@ export class TimetableApi {
   static async deleteTimetable(timeTableId: number): Promise<ApiResponse<void>> {
     try {
       console.log('🌐 시간표 삭제 API 요청:', timeTableId);
-      
+
+
+      const token = await await storage.getToken(); // 토큰 저장 방식에 따라 수정
+
+               if (!token) {
+                  return {
+                    success: false,
+                    error: '로그인이 필요합니다.'
+                  };
+              }
+
       // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/${timeTableId}`, {
-      //   method: 'DELETE'
-      // });
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${API_BASE_URL}/timetable/${timeTableId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // JWT 토큰 헤더 추가 필수!
+            }
+          });
+
       
       console.log('✅ 시간표 삭제 성공:', timeTableId);
       return { success: true };
@@ -170,39 +166,67 @@ export class TimetableApi {
   static async createLecture(timeTableId: number, data: LectureCreateRequest): Promise<ApiResponse<void>> {
     try {
       console.log('🌐 강의 생성 API 요청:', { timeTableId, data });
+
+      const token = await storage.getToken(); // 토큰 저장 방식에 따라 수정
+              if (!token) {
+                  return {
+                    success: false,
+                    error: '로그인이 필요합니다.'
+                  };
+              }
+      //TODO: 실제 API 연동시 아래 주석 해제
+      const response = await fetch(`${API_BASE_URL}/timetable/lecture/${timeTableId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ${token}'
+            },
+        body: JSON.stringify(data)
+      });
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/lecture/${timeTableId}`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   return { 
-      //     success: false, 
-      //     apiError: errorData,
-      //     error: errorData.message || '강의 생성에 실패했습니다.' 
-      //   };
-      // }
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 시간 중복 검증 시뮬레이션 (임시)
-      if (data.dayOfWeek === '월' && data.startTime === '09:00') {
+      if (!response.ok) {
+        const errorData = await response.json();
         return {
           success: false,
-          apiError: {
-            status: 400,
-            customCode: 400,
-            message: '강의 시간이 겹칩니다'
-          },
-          error: '강의 시간이 겹칩니다'
+          apiError: errorData,
+          error: errorData.message || '강의 생성에 실패했습니다.'
         };
       }
-      
+
+      // 응답 처리
+          if (!response.ok) {
+            const errorData = await response.json();
+
+            // 시간 중복 에러 처리
+            if (response.status === 400) {
+              return {
+                success: false,
+                apiError: errorData,
+                error: errorData.message || '강의 시간이 중복됩니다.'
+              };
+            }
+
+            // 인증 에러 처리
+            if (response.status === 401) {
+              return {
+                success: false,
+                error: '인증이 만료되었습니다. 다시 로그인해주세요.'
+              };
+            }
+
+            // 시간표를 찾을 수 없음
+            if (response.status === 404) {
+              return {
+                success: false,
+                error: '해당 시간표를 찾을 수 없습니다.'
+              };
+            }
+
+            return {
+              success: false,
+              apiError: errorData,
+              error: errorData.message || '강의 생성에 실패했습니다.'
+            };
+          }
       console.log('✅ 강의 생성 성공');
       return { success: true };
       
@@ -219,25 +243,31 @@ export class TimetableApi {
   static async updateLecture(lectureId: number, data: LectureUpdateRequest): Promise<ApiResponse<void>> {
     try {
       console.log('🌐 강의 수정 API 요청:', { lectureId, data });
+
+      const token = await storage.getToken(); // 토큰 저장 방식에 따라 수정
+                    if (!token) {
+                        return {
+                          success: false,
+                          error: '로그인이 필요합니다.'
+                        };
+                    }
+
+      const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${token}'
+            },
+        body: JSON.stringify(data)
+      });
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   return { 
-      //     success: false, 
-      //     apiError: errorData,
-      //     error: errorData.message || '강의 수정에 실패했습니다.' 
-      //   };
-      // }
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.ok) {
+        const errorData = await response.json();
+        return {
+          success: false,
+          apiError: errorData,
+          error: errorData.message || '강의 수정에 실패했습니다.'
+        };
+      }
       
       console.log('✅ 강의 수정 성공');
       return { success: true };
@@ -255,20 +285,33 @@ export class TimetableApi {
   static async deleteLecture(lectureId: number): Promise<ApiResponse<void>> {
     try {
       console.log('🌐 강의 삭제 API 요청:', lectureId);
+
+      const token = await storage.getToken(); // 토큰 저장 방식에 따라 수정
+
+      if (!token) {
+          return {
+              success: false,
+              error: '로그인이 필요합니다.'
+              };
+          }
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
-      //   method: 'DELETE'
-      // });
+      //TODO: 실제 API 연동시 아래 주석 해제
+      const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
+        method: 'DELETE',
+        headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // JWT 토큰 헤더 추가 필수!
+              }
+      });
       
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   return { 
-      //     success: false, 
-      //     apiError: errorData,
-      //     error: errorData.message || '강의 삭제에 실패했습니다.' 
-      //   };
-      // }
+      if (!response.ok) {
+        const errorData = await response.json();
+        return {
+          success: false,
+          apiError: errorData,
+          error: errorData.message || '강의 삭제에 실패했습니다.'
+        };
+      }
       
       // 임시 더미 응답 (1초 지연)
       await new Promise(resolve => setTimeout(resolve, 1000));

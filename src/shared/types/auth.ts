@@ -1,9 +1,9 @@
 import { Department } from '../data/departments';
 import { School } from '../data/schools';
 
-// 로그인 요청 타입
+// 로그인 요청 타입 (API용)
 export interface LoginRequest {
-  schoolId: string;    // 선택된 학교 ID
+  university: string;  // 대학교 이름
   studentId: string;   // 학번
   password: string;    // 비밀번호
 }

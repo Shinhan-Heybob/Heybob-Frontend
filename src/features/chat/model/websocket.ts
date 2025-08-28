@@ -9,8 +9,13 @@ export class ChatWebSocketService {
   private onConnectionStatusChanged: ((status: ConnectionStatus) => void) | null = null;
 
   constructor() {
+    const websocketUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8081';
     this.client = new Client({
+<<<<<<< HEAD
       webSocketFactory: () => new (require('sockjs-client'))(__DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws'),
+=======
+      brokerURL: `${websocketUrl}/ws`,
+>>>>>>> dev
       connectHeaders: {},
       debug: (str) => {
         console.log('[STOMP Debug]:', str);

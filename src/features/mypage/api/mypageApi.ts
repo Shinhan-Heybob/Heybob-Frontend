@@ -1,7 +1,13 @@
 import { apiClient } from '@/src/shared/api/client';
 import type { UpdateProfileRequest, AccountNoResponse, DepositRequest, DepositResponse } from '../model/types';
+import type { UserInfo } from '@/src/features/main/types';
 
 export const mypageApi = {
+  // 사용자 정보 조회
+  getUserInfo: async (userId: number) => {
+    return apiClient.get<UserInfo>(`/user/${userId}`);
+  },
+
   // 프로필 이미지 업데이트
   updateProfile: async (request: UpdateProfileRequest) => {
     return apiClient.put('/api/user/update-profile', request);

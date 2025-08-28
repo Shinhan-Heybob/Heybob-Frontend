@@ -64,7 +64,7 @@ export const StudentCard: React.FC = () => {
           <View style={styles.infoContainer}>
             <Text variant="body" style={styles.schoolInfo}>
               {'university' in currentUser 
-                ? `${currentUser.university} / ${currentUser.department}`
+                ? `${getKoreanName(currentUser.university)} / ${getKoreanName(currentUser.department)}`
                 : `${getKoreanName(currentUser.school.name)} / ${getKoreanName(currentUser.department.name)}`
               }
             </Text>

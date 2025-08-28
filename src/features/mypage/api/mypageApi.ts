@@ -16,7 +16,7 @@ export const mypageApi = {
   // 계좌번호 조회
   getAccountNo: async (): Promise<{ success: boolean, data?: AccountNoResponse; error?: string }> => {
     try {
-      const res = await apiClient.get<AccountNoResponse>('/api/account/person/no');
+      const res = await apiClient.get<AccountNoResponse>('/account/person/no');
       
       if (!res.data) {
         throw new Error(res.error || 'Failed to get user account');
@@ -36,33 +36,26 @@ export const mypageApi = {
   },
 
   // 입금 처리
-  deposit: async (request: DepositRequest): Promise<{ success: boolean; data: DepositResponse; error?: string }> => {
-    // Mock API - 실제 구현시 실제 엔드포인트로 변경
-    // return apiClient.post<DepositResponse>('/api/account/deposit', request);
-    
-    // 개발용 Mock API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+  deposit: async (request: DepositRequest): Promise<{ success: boolean; data?: DepositResponse; error?: string }> => {
     try {
-      if (request.amount <= 0) {
-        throw new Error('입금액은 0보다 커야 합니다');
-      }
+      const res = await apiClient.post<DepositResponse>('/account/deposit', request);
 
-      const mockResponse: DepositResponse = {
-        success: true,
-        message: `${request.amount.toLocaleString()}원이 입금되었습니다`
-      };
+      if(!res.success || !res.data) {
+        throw new Error(res.error || '입금 처리에 실패했습니다');
+      }
 
       return {
         success: true,
-        data: mockResponse
+        data: res.data
       };
     } catch (error) {
       return {
         success: false,
-        data: { success: false, message: '' },
-        error: error instanceof Error ? error.message : '입금 처리에 실패했습니다'
+        error: error instanceof Error ? error.message: '입금 처리에 실패했습니다'
       };
     }
+
+
+    
   }
 };

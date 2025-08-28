@@ -3,15 +3,27 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { StudentCard } from './StudentCard';
 import { MealSummary } from './MealSummary';
 import { FeatureGrid } from './FeatureGrid';
+import { useUserStore } from '../../user/model/userStore';
 import { useMealStore } from '../model/mealStore';
+import { useAccountStore } from '../../account/model/accountStore';
 
 export const MainScreen: React.FC = () => {
-  const { fetchMainPageData } = useMealStore();
+  const { fetchUserInfo } = useUserStore();
+  const { fetchMealStatistics } = useMealStore();
+  const { fetchBalance } = useAccountStore();
 
-  // 컴포넌트 마운트시 데이터 로드
+  // 컴포넌트 마운트시 데이터 로드 (3개 API 병렬 호출)
   useEffect(() => {
-    fetchMainPageData();
-  }, [fetchMainPageData]);
+    const loadMainPageData = async () => {
+      await Promise.all([
+        fetchUserInfo(),
+        fetchMealStatistics(), 
+        fetchBalance()
+      ]);
+    };
+
+    loadMainPageData();
+  }, [fetchUserInfo, fetchMealStatistics, fetchBalance]);
   return (
     <View style={styles.container}>
       <ScrollView 

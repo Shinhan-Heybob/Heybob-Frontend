@@ -1,6 +1,7 @@
 import { Text } from '@/src/shared/ui';
-import { useMealStore } from '@/src/store';
-import React, { useEffect } from 'react';
+import { useMealStore } from '../model/mealStore';
+import { useAccountStore } from '../../account/model/accountStore';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 interface MealSummaryData {
@@ -14,17 +15,17 @@ interface MealSummaryProps {
 }
 
 export const MealSummary: React.FC<MealSummaryProps> = ({ data }) => {
-  const { summaryData: storeData, fetchMealSummary, isLoading } = useMealStore();
-  
-  // 컴포넌트 마운트 시 데이터 가져오기
-  useEffect(() => {
-    if (!storeData) {
-      fetchMealSummary();
-    }
-  }, [storeData, fetchMealSummary]);
+  const { mealStatistics, isLoading: mealLoading } = useMealStore();
+  const { balance, isLoading: balanceLoading } = useAccountStore();
 
-  // 우선순위: props > store
-  const summaryData = data || storeData;
+  // 각 스토어에서 데이터 가져와서 조합
+  const summaryData = data || {
+    participationCount: mealStatistics?.mealAppointmentCount || 0,
+    groupParticipationCount: mealStatistics?.regularMeetingCount || 0,
+    accountBalance: balance ? parseInt(balance.balance) : 0,
+  };
+
+  const isLoading = mealLoading || balanceLoading;
 
   // 데이터 로딩 중일 때
   if (isLoading) {

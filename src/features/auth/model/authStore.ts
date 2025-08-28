@@ -119,28 +119,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // API 호출
       const response = await authApi.signUp(signUpRequest);
       
-      if (response.success && response.data) {
-        // 토큰 및 사용자 ID 저장
-        await storage.setToken(response.data.refreshToken);
-        await storage.setUserId(response.data.userId);
-
-        // 사용자 정보 생성
-        const newUser: User = {
-          id: response.data.userId.toString(),
-          studentId: signUpData.studentId,
-          name: signUpData.name,
-          school: selectedSchool,
-          department: selectedDepartment,
-          avatarId: signUpData.avatarId,
-        };
+      if (response.success) {
+        console.log('✅ 회원가입 성공');
         
-        // 회원가입 후 자동 로그인
+        // 회원가입 성공 - 로그인 페이지로 이동하도록 안내
         set({ 
-          user: newUser, 
-          isAuthenticated: true, 
           isLoading: false,
           error: null 
         });
+        
+        // 회원가입 성공 - UI에서 로그인 페이지로 이동 처리
+        
       } else {
         set({ 
           error: response.error || '회원가입에 실패했습니다.',

@@ -2,6 +2,7 @@ import { getAvatarById } from '@/src/shared/data/avatars';
 import { Text } from '@/src/shared/ui';
 import { QRModal } from '@/src/shared/ui/molecules/QRModal';
 import { useAuthStore } from '@/src/store';
+import { useMealStore } from '../model/mealStore';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
@@ -9,11 +10,19 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export const StudentCard: React.FC = () => {
   const { user } = useAuthStore();
+  const { mainPageData } = useMealStore();
   const [showQR, setShowQR] = useState(false);
 
-  if (!user) return null;
+  // 메인페이지 API에서 가져온 최신 사용자 정보 우선 사용
+  const currentUser = mainPageData.userInfo || user;
 
-  const avatarImage = getAvatarById(user.avatarId);
+  if (!currentUser) return null;
+
+  // 타입에 따라 적절한 프로필 이미지 필드 사용
+  const profileImageId = 'profileUrl' in currentUser 
+    ? currentUser.profileUrl 
+    : currentUser.avatarId;
+  const avatarImage = getAvatarById(profileImageId || 'avatar_01');
 
   // 한글명만 추출 (괄호 앞 부분)
   const getKoreanName = (fullName: string) => {
@@ -54,10 +63,13 @@ export const StudentCard: React.FC = () => {
           {/* 정보 텍스트 */}
           <View style={styles.infoContainer}>
             <Text variant="body" style={styles.schoolInfo}>
-              {getKoreanName(user.school.name)} / {getKoreanName(user.department.name)}
+              {'university' in currentUser 
+                ? `${currentUser.university} / ${currentUser.department}`
+                : `${getKoreanName(currentUser.school.name)} / ${getKoreanName(currentUser.department.name)}`
+              }
             </Text>
             <Text variant="title" style={styles.nameInfo}>
-              {user.name}({user.studentId})
+              {currentUser.name}({currentUser.studentId})
             </Text>
           </View>
         </View>
@@ -82,11 +94,13 @@ export const StudentCard: React.FC = () => {
       </View>
 
       {/* QR 모달 */}
-      <QRModal
-        visible={showQR}
-        user={user}
-        onClose={() => setShowQR(false)}
-      />
+      {user && (
+        <QRModal
+          visible={showQR}
+          user={user}
+          onClose={() => setShowQR(false)}
+        />
+      )}
     </LinearGradient>
   );
 };

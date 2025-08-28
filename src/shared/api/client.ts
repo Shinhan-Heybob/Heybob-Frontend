@@ -11,6 +11,10 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+interface RequestOptions extends RequestInit {
+  skipAuth?: boolean;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -20,27 +24,42 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
       
-      // 토큰 가져오기
-      const token = await storage.getToken();
+      // 토큰 가져오기 (skipAuth가 true가 아닌 경우만)
+      const token = options.skipAuth ? null : await storage.getToken();
+      
+      const { skipAuth, ...requestOptions } = options;
       
       const config: RequestInit = {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` }),
-          ...options.headers,
+          ...requestOptions.headers,
         },
-        ...options,
+        ...requestOptions,
       };
 
       console.log(`🌐 API 요청: ${config.method || 'GET'} ${url}`);
+      console.log(`🔑 Authorization 헤더:`, (config.headers as Record<string, string>)?.['Authorization'] ? '있음' : '없음');
+      if (options.skipAuth) {
+        console.log(`⏭️ skipAuth: true - 토큰 제외됨`);
+      }
       
       const response = await fetch(url, config);
-      const data = await response.json();
+      
+      // 응답이 비어있는 경우 처리
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : {};
+      } else {
+        data = {};
+      }
 
       // 401 Unauthorized 처리
       if (response.status === 401) {
@@ -79,10 +98,11 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
+      ...options,
     });
   }
 

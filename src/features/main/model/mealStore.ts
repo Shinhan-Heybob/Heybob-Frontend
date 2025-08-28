@@ -1,4 +1,8 @@
+import { storage } from '@/src/shared/lib/storage';
 import { create } from 'zustand';
+import { mypageApi } from '../../mypage/api/mypageApi';
+import { mainApi } from '../api/mainApi';
+import type { MainPageData } from '../types';
 
 export interface MealSummaryData {
   participationCount: number;  // 밥약 만들기 참여 횟수
@@ -8,12 +12,14 @@ export interface MealSummaryData {
 
 interface MealState {
   summaryData: MealSummaryData | null;
+  mainPageData: MainPageData;
   isLoading: boolean;
   error: string | null;
 }
 
 interface MealActions {
   fetchMealSummary: () => Promise<void>;
+  fetchMainPageData: () => Promise<void>;
   setMealSummary: (data: MealSummaryData) => void;
   clearError: () => void;
 }
@@ -23,37 +29,69 @@ type MealStore = MealState & MealActions;
 export const useMealStore = create<MealStore>((set, get) => ({
   // 상태
   summaryData: null,
+  mainPageData: {
+    userInfo: null,
+    mealStatistics: null,
+    accountBalance: null,
+  },
   isLoading: false,
   error: null,
 
-  // 밥약 요약 데이터 가져오기
-  fetchMealSummary: async () => {
+  // 메인페이지 데이터 가져오기 (3개 API 동시 호출)
+  fetchMainPageData: async () => {
     set({ isLoading: true, error: null });
     
     try {
-      // TODO: 실제 API 엔드포인트로 교체
-      // const response = await fetch('/api/meals/summary');
-      // const data = await response.json();
+      const userId = await storage.getUserId();
+      if (!userId) {
+        throw new Error('사용자 정보가 없습니다. 다시 로그인해주세요.');
+      }
+
+      // 3개 API 동시 호출
+      const [userInfoResponse, mealStatsResponse, balanceResponse] = await Promise.allSettled([
+        mypageApi.getUserInfo(userId),
+        mainApi.getMealStatistics(),
+        mainApi.getAccountBalance()
+      ]);
+
+      // 각 결과 처리
+      const userInfo = userInfoResponse.status === 'fulfilled' && userInfoResponse.value.success 
+        ? userInfoResponse.value.data : null;
       
-      // 임시 더미 데이터 (API 연동 전까지 사용)
-      await new Promise(resolve => setTimeout(resolve, 1000)); // API 호출 시뮬레이션
-      
-      const dummyData: MealSummaryData = {
-        participationCount: 12,
-        groupParticipationCount: 3,
-        accountBalance: 3400
+      const mealStatistics = mealStatsResponse.status === 'fulfilled' && mealStatsResponse.value.success
+        ? mealStatsResponse.value.data : null;
+        
+      const accountBalance = balanceResponse.status === 'fulfilled' && balanceResponse.value.success
+        ? balanceResponse.value.data : null;
+
+      // 기존 MealSummaryData 형태로도 변환
+      const summaryData: MealSummaryData = {
+        participationCount: mealStatistics?.mealAppointmentCount || 0,
+        groupParticipationCount: mealStatistics?.regularMeetingCount || 0,
+        accountBalance: parseInt(accountBalance?.balance || '0')
       };
-      
+
       set({ 
-        summaryData: dummyData, 
+        mainPageData: {
+          userInfo: userInfo || null,
+          mealStatistics: mealStatistics || null,
+          accountBalance: accountBalance || null
+        },
+        summaryData,
         isLoading: false 
       });
     } catch (error) {
+      console.error('메인페이지 데이터 로드 실패:', error);
       set({ 
         error: error instanceof Error ? error.message : '데이터를 불러오는데 실패했습니다',
         isLoading: false 
       });
     }
+  },
+
+  // 밥약 요약 데이터 가져오기 (기존 호환성을 위해 유지)
+  fetchMealSummary: async () => {
+    await get().fetchMainPageData();
   },
 
   // 밥약 요약 데이터 직접 설정

@@ -85,6 +85,12 @@ export const SignUpForm: React.FC = () => {
     
     clearError();
     await signUp(formData);
+    
+    // 회원가입 성공시 (에러가 없고 로딩이 끝난 경우) 로그인 페이지로 이동
+    if (!error && !isLoading) {
+      alert('회원가입이 완료되었습니다. 로그인해주세요.');
+      router.push('/(auth)/sign-in');
+    }
   };
 
   // 입력값 변경 처리

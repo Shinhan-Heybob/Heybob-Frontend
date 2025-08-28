@@ -28,12 +28,12 @@ export interface SignUpResponse {
 
 export const authApi = {
   login: async (loginData: LoginRequest) => {
-    const response = await apiClient.post<LoginResponse>('/auth/login', loginData);
+    const response = await apiClient.post<LoginResponse>('/auth/login', loginData, { skipAuth: true });
     return response;
   },
 
   signUp: async (signUpData: SignUpRequest) => {
-    const response = await apiClient.post<SignUpResponse>('/auth/signup', signUpData);
+    const response = await apiClient.post<SignUpResponse>('/auth/signup', signUpData, { skipAuth: true });
     return response;
   },
 

@@ -215,7 +215,7 @@ export const SignUpForm: React.FC = () => {
                 <CheckBox
                   checked={formData.agreeTerms}
                   onPress={() => handleInputChange('agreeTerms', !formData.agreeTerms)}
-                  label="[필수] 이용약관 및 개인정보처리방침에 동의합니다."
+                  label="[필수] 이용약관 및 개인정보처리방침에 동의하며, 개인 계좌가 개설됨에 동의합니다."
                 />
                 {agreeTermsError && (
                   <Text variant="caption" style={styles.errorText}>

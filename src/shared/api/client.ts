@@ -1,5 +1,7 @@
 // API 클라이언트 설정
 
+import { storage } from '@/src/shared/lib/storage';
+
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 interface ApiResponse<T> {
@@ -22,9 +24,14 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      
+      // 토큰 가져오기
+      const token = await storage.getToken();
+      
       const config: RequestInit = {
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
         ...options,
@@ -34,6 +41,17 @@ class ApiClient {
       
       const response = await fetch(url, config);
       const data = await response.json();
+
+      // 401 Unauthorized 처리
+      if (response.status === 401) {
+        console.warn('🔒 인증 토큰이 만료되었습니다.');
+        await storage.clearAll();
+        // 로그아웃 처리는 AuthStore에서 담당
+        return {
+          success: false,
+          error: 'UNAUTHORIZED',
+        };
+      }
 
       if (!response.ok) {
         console.error(`❌ API 오류 [${response.status}]:`, data);

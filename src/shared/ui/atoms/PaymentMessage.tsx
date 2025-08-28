@@ -16,19 +16,38 @@ export const PaymentMessage: React.FC<PaymentMessageProps> = ({
   isMyMessage,
   onPaymentPress,
 }) => {
+  // 디버깅: 정산 메시지 정보 확인
+  console.log('💰 PaymentMessage 렌더링:', {
+    messageType: message.messageType,
+    senderId: message.senderId,
+    senderName: message.senderName,
+    studentId: message.studentId,
+    profileImageUrl: message.profileImageUrl,
+    isMyMessage,
+  });
+  
   const handlePaymentPress = () => {
     onPaymentPress?.(message);
   };
 
   const renderPaymentButton = () => {
-    if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
-      return (
-        <TouchableOpacity style={styles.paymentButton} onPress={handlePaymentPress}>
-          <Text style={styles.paymentButtonText}>
-            {message.paymentRequestData.requestAmount.toLocaleString()}원 송금하기
-          </Text>
-        </TouchableOpacity>
-      );
+    if (message.messageType === 'PAYMENT_REQUEST') {
+      // 실시간 메시지는 paymentData, 목 데이터는 paymentRequestData
+      const paymentData = (message as any).paymentData || message.paymentRequestData;
+      
+      if (paymentData) {
+        return (
+          <TouchableOpacity 
+            style={styles.paymentButton} 
+            onPress={handlePaymentPress}
+            testID={`payment-button-${message.messageId}`}
+          >
+            <Text style={styles.paymentButtonText}>
+              {paymentData.requestAmount.toLocaleString()}원 송금하기
+            </Text>
+          </TouchableOpacity>
+        );
+      }
     }
     return null;
   };

@@ -21,14 +21,19 @@ export const SavingsMessage: React.FC<SavingsMessageProps> = ({
   };
 
   const renderSavingsButton = () => {
-    if (message.messageType === 'SAVINGS_REQUEST' && message.savingsRequestData) {
-      return (
-        <TouchableOpacity style={styles.savingsButton} onPress={handleSavingsPress}>
-          <Text style={styles.savingsButtonText}>
-            {message.savingsRequestData.requestAmount.toLocaleString()}원 모으기
-          </Text>
-        </TouchableOpacity>
-      );
+    if (message.messageType === 'SAVINGS_REQUEST') {
+      // 실시간 메시지는 paymentRequestData, 목 데이터는 savingsRequestData
+      const savingsData = (message as any).paymentRequestData || message.savingsRequestData;
+      
+      if (savingsData) {
+        return (
+          <TouchableOpacity style={styles.savingsButton} onPress={handleSavingsPress}>
+            <Text style={styles.savingsButtonText}>
+              {savingsData.requestAmount.toLocaleString()}원 모으기
+            </Text>
+          </TouchableOpacity>
+        );
+      }
     }
     return null;
   };
@@ -62,12 +67,16 @@ export const SavingsMessage: React.FC<SavingsMessageProps> = ({
   }
 
   // 상대방이 보낸 적금 메시지 (왼쪽 정렬)
+  const savingsData = (message as any).paymentRequestData || message.savingsRequestData;
+  const profileImageUrl = message.profileImageUrl || savingsData?.requesterProfileImg;
+  const studentId = message.studentId || savingsData?.requesterStudentId;
+  
   return (
     <View style={styles.otherSavingsContainer}>
       <View style={styles.profileContainer}>
         <View style={styles.avatarContainer}>
-          {message.profileImageUrl ? (
-            <Image source={{ uri: message.profileImageUrl }} style={styles.avatar} />
+          {profileImageUrl ? (
+            <Image source={{ uri: profileImageUrl }} style={styles.avatar} />
           ) : (
             <View style={styles.defaultAvatar}>
               <Text style={styles.avatarText}>👨‍🎓</Text>
@@ -79,7 +88,7 @@ export const SavingsMessage: React.FC<SavingsMessageProps> = ({
       <View style={styles.savingsContentContainer}>
         <View style={styles.senderInfo}>
           <Text style={styles.senderName}>{message.senderName}</Text>
-          <Text style={styles.studentId}>({message.studentId})</Text>
+          <Text style={styles.studentId}>({studentId})</Text>
         </View>
         
         <View style={styles.savingsRow}>

@@ -1,11 +1,12 @@
 import { useChatStore } from '@/src/features/chat/model/chatStore';
 import type { ChatMessage, ChatRoom, CurrentUser } from '@/src/features/chat/model/types';
 import { ChatHeader } from '@/src/features/chat/ui/components/ChatHeader';
+import { AiChatbot } from '@/src/features/chat/ui/components/AiChatbot';
 import { MessageInput } from '@/src/shared/ui/atoms/MessageInput';
 import { MessageList } from '@/src/shared/ui/molecules/MessageList';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export type ChatType = 'meal' | 'group';
 
@@ -25,6 +26,7 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [hasInteractedWithKeyboard, setHasInteractedWithKeyboard] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [showAiChatbot, setShowAiChatbot] = useState(false);
   const messageListRef = useRef<FlatList>(null);
   
   const {
@@ -38,6 +40,7 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
     sendMessage,
     sendTypedMessage,
     sendCafeteriaInfoRequest,
+    sendAiQuestion,
     loadMessages,
     setCurrentUser,
     setCurrentRoom,
@@ -87,6 +90,11 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
     loadMessages(roomId);
 
     // WebSocket 연결
+    console.log('🔍 ChatScreen에서 connect 호출:', {
+      currentUser,
+      roomId,
+      hasCurrentUser: !!currentUser
+    });
     connect(currentUser, roomId);
 
     // cleanup
@@ -120,29 +128,39 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
 
   // 결제 버튼 클릭 (밥약용)
   const handlePaymentPress = (message: ChatMessage) => {
-    if (message.messageType === 'PAYMENT_REQUEST' && message.paymentRequestData) {
-      router.push({
-        pathname: '/payment-confirm/[roomId]',
-        params: {
-          roomId: roomId,
-          amount: message.paymentRequestData.requestAmount.toString(),
-          messageId: message.messageId
-        }
-      });
+    if (message.messageType === 'PAYMENT_REQUEST') {
+      // 실시간 메시지는 paymentData, 목 데이터는 paymentRequestData
+      const paymentData = (message as any).paymentData || message.paymentRequestData;
+      
+      if (paymentData) {
+        router.push({
+          pathname: '/payment-confirm/[roomId]',
+          params: {
+            roomId: roomId,
+            amount: paymentData.requestAmount.toString(),
+            messageId: message.messageId
+          }
+        });
+      }
     }
   };
 
   // 적금 버튼 클릭 (모임용)
   const handleSavingsPress = (message: ChatMessage) => {
-    if (message.messageType === 'SAVINGS_REQUEST' && message.savingsRequestData) {
-      router.push({
-        pathname: '/savings-confirm/[roomId]',
-        params: {
-          roomId: roomId,
-          amount: message.savingsRequestData.requestAmount.toString(),
-          messageId: message.messageId
-        }
-      });
+    if (message.messageType === 'SAVINGS_REQUEST') {
+      // 실시간 메시지는 paymentRequestData, 목 데이터는 savingsRequestData
+      const savingsData = (message as any).paymentRequestData || message.savingsRequestData;
+      
+      if (savingsData) {
+        router.push({
+          pathname: '/savings-confirm/[roomId]',
+          params: {
+            roomId: roomId,
+            amount: savingsData.requestAmount.toString(),
+            messageId: message.messageId
+          }
+        });
+      }
     }
   };
 
@@ -212,6 +230,11 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
     sendCafeteriaInfoRequest();
   };
 
+  // AI 챗봇 토글
+  const handleAiChatbotPress = () => {
+    setShowAiChatbot(!showAiChatbot);
+  };
+
   const getHeaderTitle = () => {
     if (roomInfo?.title) return roomInfo.title;
     return chatType === 'meal' ? '학식 먹으러 가는 팟' : '모임 채팅방';
@@ -267,9 +290,33 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
           disabled={isInputDisabled}
           onPlusButtonPress={handlePlusButtonPress}
           onCafeteriaInfoPress={handleCafeteriaInfoPress}
+          onAiChatbotPress={handleAiChatbotPress}
           chatType={chatType}
         />
       </View>
+
+      {/* AI 챗봇 모달 */}
+      <Modal
+        visible={showAiChatbot}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAiChatbot(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowAiChatbot(false)}
+            >
+              <Text style={styles.modalCloseText}>← 채팅으로 돌아가기</Text>
+            </TouchableOpacity>
+          </View>
+          <AiChatbot 
+            roomId={roomId}
+            currentUser={currentUser}
+          />
+        </View>
+      </Modal>
 
       {/* 연결 상태 표시 */}
       {connectionStatus === 'connecting' && (
@@ -335,6 +382,26 @@ const styles = StyleSheet.create({
   newMessageButtonText: {
     color: 'white',
     fontSize: 14,
+    fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  modalHeader: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalCloseButton: {
+    alignSelf: 'flex-start',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    color: '#3B82F6',
     fontWeight: '600',
   },
 });

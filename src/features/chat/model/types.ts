@@ -7,7 +7,9 @@ export type MessageType =
   | 'PAYMENT_COMPLETE' // 결제 완료
   | 'SAVINGS_REQUEST'  // 적금 요청
   | 'SAVINGS_COMPLETE' // 적금 완료
-  | 'CAFETERIA_INFO' // 학식 정보
+  | 'CAFETERIA_INFO'   // 학식 정보
+  | 'AI_BOT_REQUEST'   // AI 챗봇 질문
+  | 'AI_BOT_RESPONSE'  // AI 챗봇 응답
 
 // 결제 요청 데이터
 export interface PaymentRequestData {

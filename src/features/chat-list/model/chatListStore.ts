@@ -75,8 +75,8 @@ export const useChatListStore = create<ChatListStore>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      // 개발 중에는 Mock API 사용
-      const response = await chatListApi.getMockChatList(
+      // 실제 API 사용
+      const response = await chatListApi.getChatList(
         currentUserId,
         filters.status,
         filters.type

@@ -4,13 +4,22 @@ import type { ChatListItem, ChatStatus, ChatType } from '@/src/features/chat-lis
 export const chatListApi = {
   // 실제 API 호출
   getChatList: async (userId: number, status: ChatStatus, type: ChatType) => {
-    const queryParams = new URLSearchParams({
-      userId: userId.toString(),
-      status,
-      type,
-    });
+    const queryParams = new URLSearchParams();
+    
+    // status가 'all'이 아닌 경우만 파라미터로 추가
+    if (status !== 'all') {
+      queryParams.append('status', status);
+    }
+    
+    // type이 'all'이 아닌 경우만 파라미터로 추가  
+    if (type !== 'all') {
+      queryParams.append('type', type);
+    }
 
-    return apiClient.get<ChatListItem[]>(`/meal-appointments/list?${queryParams}`);
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/meal-appointments/list?${queryString}` : '/meal-appointments/list';
+    
+    return apiClient.get<ChatListItem[]>(endpoint);
   },
 
   // 개발용 Mock API

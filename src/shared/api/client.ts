@@ -2,7 +2,8 @@
 
 import { storage } from '@/src/shared/lib/storage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080/api';
+const CHAT_API_BASE_URL = process.env.EXPO_PUBLIC_CHAT_API_URL || 'http://localhost:8081/api';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -94,8 +95,11 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { 
+      method: 'GET',
+      ...options
+    });
   }
 
   async post<T>(endpoint: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
@@ -119,4 +123,5 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
+export const chatApiClient = new ApiClient(CHAT_API_BASE_URL);
 export type { ApiResponse };

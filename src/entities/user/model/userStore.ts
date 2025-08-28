@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { mypageApi } from '../../mypage/api/mypageApi';
+import { mypageApi } from '@/src/features/mypage/api/mypageApi';
 import { storage } from '@/src/shared/lib/storage';
-import type { UserInfo } from '../../main/types';
+import type { UserInfo } from '@/src/features/main/types';
 
 interface UserState {
   userInfo: UserInfo | null;

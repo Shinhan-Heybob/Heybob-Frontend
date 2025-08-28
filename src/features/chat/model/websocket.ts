@@ -9,8 +9,9 @@ export class ChatWebSocketService {
   private onConnectionStatusChanged: ((status: ConnectionStatus) => void) | null = null;
 
   constructor() {
+    const websocketUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8081';
     this.client = new Client({
-      brokerURL: 'ws://localhost:8081/ws',
+      brokerURL: `${websocketUrl}/ws`,
       connectHeaders: {},
       debug: (str) => {
         console.log('[STOMP Debug]:', str);

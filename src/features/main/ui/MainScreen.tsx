@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { StudentCard } from './StudentCard';
 import { MealSummary } from './MealSummary';
 import { FeatureGrid } from './FeatureGrid';
+import { useMealStore } from '../model/mealStore';
 
 export const MainScreen: React.FC = () => {
+  const { fetchMainPageData } = useMealStore();
+
+  // 컴포넌트 마운트시 데이터 로드
+  useEffect(() => {
+    fetchMainPageData();
+  }, [fetchMainPageData]);
   return (
     <View style={styles.container}>
       <ScrollView 

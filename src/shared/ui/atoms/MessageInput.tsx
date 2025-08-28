@@ -57,7 +57,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   const getMainMenuText = () => {
-    return chatType === 'meal' ? '1/N 정산하기' : '1/N 모으기';
+    return '1/N 정산하기';
   };
 
   return (
@@ -66,17 +66,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         {/* 드롭다운 메뉴 */}
         {isDropdownVisible && (
           <View style={styles.dropdown}>
-            {chatType === 'meal' && (
-              <>
-                <TouchableOpacity 
-                  style={styles.menuItem} 
-                  onPress={() => handleMenuItemPress('main')}
-                >
-                  <Text style={styles.menuItemText}>{getMainMenuText()}</Text>
-                </TouchableOpacity>
-                <View style={styles.menuSeparator} />
-              </>
-            )}
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => handleMenuItemPress('main')}
+            >
+              <Text style={styles.menuItemText}>{getMainMenuText()}</Text>
+            </TouchableOpacity>
+            <View style={styles.menuSeparator} />
             <TouchableOpacity 
               style={styles.menuItem} 
               onPress={() => handleMenuItemPress('cafeteria')}

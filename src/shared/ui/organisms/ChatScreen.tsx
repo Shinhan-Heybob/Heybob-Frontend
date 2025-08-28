@@ -216,8 +216,12 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
         params: { roomId }
       });
     } else {
-      // 모임 채팅: + 버튼 기능 없음
-      console.log('모임 채팅에서 + 버튼 클릭됨 - 기능 없음');
+      // 모임 채팅: 1/N 정산하기 (밥약과 동일)
+      console.log('모임 1/N 정산하기 클릭:', roomId);
+      router.push({
+        pathname: '/split-bill/[roomId]',
+        params: { roomId }
+      });
     }
   };
 

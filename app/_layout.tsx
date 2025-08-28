@@ -40,13 +40,15 @@ export default function RootLayout() {
       const inPaymentConfirmGroup = segments[0] === 'payment-confirm';
       const inSavingsConfirmGroup = segments[0] === 'savings-confirm';
       const inMealInfoGroup = segments[0] === 'meal-info';
-
+      const inChatListGroup = segments[0] === 'chatlist';
+      const accountHistory = segments[0] === 'account-history';
+      const inMyPageGroup = segments[0] === 'mypage';
 
       if (!isAuthenticated && !inAuthGroup) {
         // 인증 안됨 → 로그인으로
         router.replace('/(auth)/sign-in');
 
-      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inMealGroup && !inTimetableGroup && !inGroupsGroup && !inChatGroup && !inSplitBillGroup && !inPaymentConfirmGroup && !inSavingsConfirmGroup && !inMealInfoGroup) {
+      } else if (isAuthenticated && !inMainGroup && !inMealsGroup && !inMealGroup && !inTimetableGroup && !inGroupsGroup && !inChatGroup && !inSplitBillGroup && !inPaymentConfirmGroup && !inSavingsConfirmGroup && !inMealInfoGroup && !inChatListGroup && !accountHistory && !inMyPageGroup) {
         // 인증됨 + 허용된 그룹이 아님 → 메인으로
         router.replace('/(main)');
       }
@@ -82,6 +84,9 @@ export default function RootLayout() {
         <Stack.Screen name="payment-confirm" />
         <Stack.Screen name="savings-confirm" />
         <Stack.Screen name="meal-info" />
+        <Stack.Screen name="chatlist" />
+        <Stack.Screen name="account-history" />
+        <Stack.Screen name="mypage" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
 import { IconButton } from '@/src/shared/ui/molecules/IconButton';
+import { router } from 'expo-router';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 interface FeatureItem {
   id: string;
@@ -13,17 +13,12 @@ interface FeatureItem {
 // 기능 버튼 데이터 (피그마 순서대로)
 const FEATURES: FeatureItem[] = [
   // 첫 번째 줄
-  {
-    id: 'schedule',
-    label: '시간표 확인',
-    icon: require('@/assets/images/icons/schedule.png'),
-    route: '/schedule',
-  },
+
   {
     id: 'meal-list',
-    label: '밥약 목록',
+    label: '채팅 목록',
     icon: require('@/assets/images/icons/meal-list.png'),
-    route: '/meals',
+    route: '/chatlist',
   },
   {
     id: 'meal-create',
@@ -31,12 +26,18 @@ const FEATURES: FeatureItem[] = [
     icon: require('@/assets/images/icons/meal-create.png'),
     route: '/meals/create',
   },
-  {
-    id: 'savings',
-    label: '모임 적금',
-    icon: require('@/assets/images/icons/group.png'), // savings.png가 없으면 group.png 사용
-    route: '/savings',
+    {
+    id: 'group-create',
+    label: '모임 만들기',
+    icon: require('@/assets/images/icons/group-create.png'),
+    route: '/groups/create',
   },
+  // {
+  //   id: 'savings',
+  //   label: '모임 적금',
+  //   icon: require('@/assets/images/icons/group.png'), // savings.png가 없으면 group.png 사용
+  //   route: '/savings',
+  // },
   // 두 번째 줄
   {
     id: 'account',
@@ -44,37 +45,53 @@ const FEATURES: FeatureItem[] = [
     icon: require('@/assets/images/icons/account.png'),
     route: '/account',
   },
-  {
-    id: 'settlement',
-    label: '정산 목록',
-    icon: require('@/assets/images/icons/settlement.png'),
-    route: '/settlement',
+    {
+    id: 'schedule',
+    label: '시간표 확인',
+    icon: require('@/assets/images/icons/schedule.png'),
+    route: '/schedule',
   },
-  {
-    id: 'group-create',
-    label: '모임 만들기',
-    icon: require('@/assets/images/icons/group-create.png'),
-    route: '/groups/create',
-  },
+  // {
+  //   id: 'settlement',
+  //   label: '정산 목록',
+  //   icon: require('@/assets/images/icons/settlement.png'),
+  //   route: '/settlement',
+  // },
+
   {
     id: 'settings',
-    label: '설정 변경',
-    icon: require('@/assets/images/icons/settings.png'),
-    route: '/settings',
+    label: '마이페이지',
+    icon: require('@/assets/images/icons/mypage.png'),
+    route: '/mypage',
   },
 ];
 
 export const FeatureGrid: React.FC = () => {
   const handleFeaturePress = (route: string) => {
 
-    // 밥약 만들기와 모임 만들기는 실제 페이지로 이동
+    // 밥약 만들기, 모임 만들기, 채팅 목록은 실제 페이지로 이동
     if (route === '/meals/create' || route === '/groups/create') {
+      router.push(route);
+      return;
+    }
+    
+    if (route === '/chatlist') {
       router.push(route);
       return;
     }
     
     if (route === '/schedule') {
       router.push('/timetable');
+      return;
+    }
+    
+    if (route === '/account') {
+      router.push('/account-history');
+      return;
+    }
+
+      if (route === '/mypage') {
+      router.push('/mypage');
       return;
     }
     
@@ -87,7 +104,7 @@ export const FeatureGrid: React.FC = () => {
     <View style={styles.container}>
       {/* 첫 번째 줄 */}
       <View style={styles.row}>
-        {FEATURES.slice(0, 4).map((feature) => (
+        {FEATURES.slice(0, 3).map((feature) => (
           <IconButton
             key={feature.id}
             icon={feature.icon}
@@ -101,7 +118,7 @@ export const FeatureGrid: React.FC = () => {
 
       {/* 두 번째 줄 */}
       <View style={styles.row}>
-        {FEATURES.slice(4, 8).map((feature) => (
+        {FEATURES.slice(3, 6).map((feature) => (
           <IconButton
             key={feature.id}
             icon={feature.icon}

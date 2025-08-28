@@ -1,3 +1,4 @@
+
 import type { MealInfo } from '@/src/shared/ui/atoms/MealInfoCard';
 import { create } from 'zustand';
 

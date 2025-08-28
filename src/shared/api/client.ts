@@ -4,9 +4,9 @@
 const getApiBaseUrl = () => {
   if (__DEV__) {
     // 개발 환경에서는 실제 네트워크 IP 사용
-    return process.env.EXPO_PUBLIC_API_URL || 'http://70.12.246.239:3000/api';
+    return process.env.EXPO_PUBLIC_API_URL || 'http://70.12.246.239:8080/api';
   }
-  return process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+  return process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080/api';
 };
 
 const getChatApiBaseUrl = () => {

@@ -73,11 +73,88 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({ roomId, currentUser }) => 
 
   // 질문 예시
   const questionExamples = [
+    // 기본 추천
+    '오늘 점심 뭐 먹지?',
+    '저녁 메뉴 추천해줘',
+    '아침 식사 뭐가 좋을까?',
+    '간식으로 뭐 먹을까?',
+    
+    // 음식 종류별
+    '한식 메뉴 추천',
+    '중식 메뉴 추천해줘',
+    '일식 추천해줘',
+    '양식 메뉴 알려줘',
+    '분식 뭐 먹을까?',
+    '치킨 말고 다른 거',
+    '피자 말고 뭐 있어?',
+    '족발보쌈 어때?',
+    
+    // 맛 기준
     '매운 음식 추천해줘',
-    '다이어트할 때 좋은 메뉴는?',
+    '달콤한 음식 뭐 있어?',
+    '짠 음식 먹고 싶어',
+    '시원한 음식 추천',
+    '뜨거운 음식 뭐가 좋지?',
+    '담백한 음식 추천',
+    '고소한 음식 먹고 싶어',
+    
+    // 상황별
     '비 오는 날 먹기 좋은 음식',
+    '추운 날 따뜻한 음식',
+    '더운 날 시원한 음식',
+    '숙취해소에 좋은 음식',
+    '감기 걸렸을 때 음식',
+    '스트레스 받을 때 먹을 것',
+    '우울할 때 위로되는 음식',
+    '기분 좋을 때 먹을 음식',
+    
+    // 다이어트/건강
+    '다이어트할 때 좋은 메뉴는?',
+    '살 안 찌는 음식',
+    '칼로리 낮은 음식',
+    '헬스하는 사람 음식',
+    '단백질 많은 음식',
+    '야식으로 괜찮은 음식',
+    '건강한 음식 추천',
+    
+    // 시간/편의성
     '간단하게 먹을 수 있는 메뉴',
+    '5분 안에 만들 수 있는 음식',
+    '배달 음식 추천',
+    '혼자 먹기 좋은 음식',
+    '친구들과 먹기 좋은 음식',
+    '데이트 음식 추천',
+    '가족들과 먹을 음식',
+    
+    // 가격대
+    '저렴한 음식 추천',
+    '가성비 좋은 음식',
+    '비싸도 맛있는 음식',
+    '만원 이하 음식',
+    '학생이 먹기 좋은 음식',
+    
+    // 특정 요리
+    '라면 말고 뭐 먹을까?',
+    '김밥 종류 추천',
+    '볶음밥 말고 뭐 있어?',
+    '국물 있는 음식 추천',
+    '밥 안 먹고 뭐 먹지?',
+    '면 종류 추천해줘',
+    '고기 말고 뭐 먹을까?',
+    '해물 요리 추천',
+    '채소 많은 음식',
+    '밥도둑 반찬 추천',
   ];
+
+  // 입력값에 따라 필터링된 예시
+  const filteredExamples = inputText.trim() 
+    ? questionExamples.filter(example => 
+        example.toLowerCase().includes(inputText.toLowerCase()) ||
+        inputText.toLowerCase().split(' ').some(word => 
+          example.toLowerCase().includes(word)
+        )
+      )
+    : questionExamples.slice(0, 4); // 입력이 없을 때는 상위 4개만 표시
 
   const handleExamplePress = (example: string) => {
     setInputText(example);
@@ -149,10 +226,12 @@ export const AiChatbot: React.FC<AiChatbotProps> = ({ roomId, currentUser }) => 
       )}
 
       {/* 질문 예시 */}
-      {aiMessages.length === 0 && (
+      {(aiMessages.length === 0 || inputText.trim()) && filteredExamples.length > 0 && (
         <View style={styles.examplesContainer}>
-          <Text style={styles.examplesTitle}>💡 질문 예시:</Text>
-          {questionExamples.map((example, index) => (
+          <Text style={styles.examplesTitle}>
+            {inputText.trim() ? '💡 추천 질문:' : '💡 질문 예시:'}
+          </Text>
+          {filteredExamples.slice(0, 6).map((example, index) => (
             <TouchableOpacity
               key={index}
               style={styles.exampleButton}

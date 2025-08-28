@@ -2,7 +2,7 @@ import { getAvatarById } from '@/src/shared/data/avatars';
 import { Text } from '@/src/shared/ui';
 import { QRModal } from '@/src/shared/ui/molecules/QRModal';
 import { useAuthStore } from '@/src/store';
-import { useMealStore } from '../model/mealStore';
+import { useUserStore } from '../../user/model/userStore';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
@@ -10,11 +10,11 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export const StudentCard: React.FC = () => {
   const { user } = useAuthStore();
-  const { mainPageData } = useMealStore();
+  const { userInfo } = useUserStore();
   const [showQR, setShowQR] = useState(false);
 
-  // 메인페이지 API에서 가져온 최신 사용자 정보 우선 사용
-  const currentUser = mainPageData.userInfo || user;
+  // userStore에서 가져온 최신 사용자 정보 우선 사용
+  const currentUser = userInfo || user;
 
   if (!currentUser) return null;
 

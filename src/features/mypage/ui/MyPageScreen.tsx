@@ -1,13 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountHistorySection } from './components/AccountHistorySection';
 import { MyPageHeader } from './components/MyPageHeader';
 import { ProfileSection } from './components/ProfileSection';
 import { WalletSection } from './components/WalletSection';
+import { useUserStore } from '@/src/entities/user/model/userStore';
 
 export const MyPageScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { fetchUserInfo } = useUserStore();
+
+  // 컴포넌트 마운트시 사용자 정보 로드
+  useEffect(() => {
+    fetchUserInfo();
+  }, [fetchUserInfo]);
   
   // 화면 높이에서 하단 탭바 높이(83px)를 뺀 사용 가능한 높이 계산
   const screenHeight = Dimensions.get('window').height;

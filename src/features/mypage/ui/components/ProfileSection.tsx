@@ -3,9 +3,11 @@ import { QRModal } from '@/src/shared/ui/molecules/QRModal';
 import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useUserStore as useMainUserStore } from '@/src/entities/user/model/userStore';
 import { useUserStore } from '../../model/userStore';
 
 export const ProfileSection: React.FC = () => {
+  const { userInfo } = useMainUserStore(); // main에서 사용하는 실제 사용자 정보
   const { profile, isLoading, changeAvatarRandomly } = useUserStore();
   const [showQRModal, setShowQRModal] = useState(false);
 
@@ -25,7 +27,17 @@ export const ProfileSection: React.FC = () => {
     setShowQRModal(false);
   };
 
-  if (!profile) {
+  // userInfo가 있으면 실제 데이터 사용, 없으면 profile 데이터 사용
+  const displayData = userInfo ? {
+    name: userInfo.name,
+    studentId: userInfo.studentId,
+    profileImage: userInfo.profileUrl,
+    university: userInfo.university,
+    department: userInfo.department,
+    id: String(userInfo.id)
+  } : profile;
+
+  if (!displayData) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>프로필 정보를 불러올 수 없습니다</Text>
@@ -39,7 +51,7 @@ export const ProfileSection: React.FC = () => {
         {/* 왼쪽: 아바타 이미지 */}
         <View style={styles.avatarContainer}>
           <Image
-            source={getAvatarById(profile.profileImage)}
+            source={getAvatarById(displayData.profileImage)}
             style={styles.avatar}
             contentFit="contain"
           />
@@ -60,8 +72,10 @@ export const ProfileSection: React.FC = () => {
 
         {/* 오른쪽: 사용자 정보 */}
         <View style={styles.userInfo}>
-          <Text style={styles.schoolInfo}>싸피대학교 / 컴퓨터공학과</Text>
-          <Text style={styles.userName}>{profile.name}({profile.studentId})</Text>
+          <Text style={styles.schoolInfo}>
+            {userInfo ? `${userInfo.university.split('(')[0].trim()} / ${userInfo.department.split('(')[0].trim()}` : '싸피대학교 / 컴퓨터공학과'}
+          </Text>
+          <Text style={styles.userName}>{displayData.name}({displayData.studentId})</Text>
           <TouchableOpacity 
             style={styles.studentCardButton}
             onPress={handleShowStudentCard}
@@ -77,17 +91,17 @@ export const ProfileSection: React.FC = () => {
       </View>
 
       {/* QR 모달 */}
-      {showQRModal && profile && (
+      {showQRModal && displayData && (
         <QRModal
           visible={showQRModal}
           onClose={handleCloseQRModal}
           user={{
-            id: profile.id,
-            name: profile.name,
-            studentId: profile.studentId,
-            avatarId: profile.profileImage,
-            school: { id: '1', name: '싸피대학교' },
-            department: { id: 'dept_01', name: '컴퓨터공학과', schoolId: '1' }
+            id: displayData.id,
+            name: displayData.name,
+            studentId: displayData.studentId,
+            avatarId: displayData.profileImage,
+            school: { id: '1', name: userInfo?.university.split('(')[0].trim() || '싸피대학교' },
+            department: { id: 'dept_01', name: userInfo?.department.split('(')[0].trim() || '컴퓨터공학과', schoolId: '1' }
           }}
         />
       )}

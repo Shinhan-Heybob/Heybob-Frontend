@@ -1,5 +1,5 @@
 import { MealInfoCard } from '@/src/shared/ui/atoms/MealInfoCard';
-import { useAuthStore } from '@/src/store';
+import { useUserStore } from '@/src/entities/user/model/userStore';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -10,7 +10,7 @@ import { ChatListFilters } from './components/ChatListFilters';
 import { ChatListHeader } from './components/ChatListHeader';
 
 export const ChatListScreen: React.FC = () => {
-  const { user } = useAuthStore();
+  const { userInfo, fetchUserInfo } = useUserStore();
   const insets = useSafeAreaInsets();
   const {
     chatList,
@@ -26,15 +26,29 @@ export const ChatListScreen: React.FC = () => {
 
   // 컴포넌트 마운트 시 초기화
   useEffect(() => {
-    if (user?.id) {
-      setCurrentUserId(parseInt(user.id));
-      loadChatList();
-    } else {
-      // 개발 중 임시 사용자 ID 설정 (실제 배포시에는 제거)
-      setCurrentUserId(1);
+    const initializeData = async () => {
+      // 사용자 정보가 없으면 먼저 로드
+      if (!userInfo) {
+        await fetchUserInfo();
+      }
+      
+      // 사용자 정보가 있으면 채팅 목록 로드
+      if (userInfo?.id) {
+        setCurrentUserId(userInfo.id);
+        loadChatList();
+      }
+    };
+
+    initializeData();
+  }, [userInfo?.id, fetchUserInfo]);
+
+  // 사용자 정보 변경 시 채팅 목록 다시 로드
+  useEffect(() => {
+    if (userInfo?.id) {
+      setCurrentUserId(userInfo.id);
       loadChatList();
     }
-  }, [user?.id]);
+  }, [userInfo?.id]);
 
   // 에러 처리
   useEffect(() => {

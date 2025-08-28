@@ -14,27 +14,23 @@ export const mypageApi = {
   },
 
   // 계좌번호 조회
-  getAccountNo: async (): Promise<{ success: boolean; data: AccountNoResponse; error?: string }> => {
-    // Mock API - 실제 구현시 아래 주석 해제
-    // return apiClient.get<AccountNoResponse>('/api/account/person/no');
-    
-    // 개발용 Mock API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+  getAccountNo: async (): Promise<{ success: boolean, data?: AccountNoResponse; error?: string }> => {
     try {
-      const mockData: AccountNoResponse = {
-        accountNo: '0883812793854573'
+      const res = await apiClient.get<AccountNoResponse>('/api/account/person/no');
+      
+      if (!res.data) {
+        throw new Error(res.error || 'Failed to get user account');
+      };
+      
+      return {
+        success: res.success,
+        data: res.data
       };
 
-      return {
-        success: true,
-        data: mockData
-      };
     } catch (error) {
       return {
         success: false,
-        data: { accountNo: '' },
-        error: error instanceof Error ? error.message : '계좌번호를 불러오는데 실패했습니다'
+        error: error instanceof Error ? error.message : "Failed to get user account"
       };
     }
   },

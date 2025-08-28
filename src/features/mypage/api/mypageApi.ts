@@ -1,6 +1,6 @@
-import { apiClient } from '@/src/shared/api/client';
-import type { UpdateProfileRequest, AccountNoResponse, DepositRequest, DepositResponse } from '../model/types';
 import type { UserInfo } from '@/src/features/main/types';
+import { apiClient } from '@/src/shared/api/client';
+import type { AccountNoResponse, DepositRequest, DepositResponse, UpdateProfileRequest } from '../model/types';
 
 export const mypageApi = {
   // 사용자 정보 조회

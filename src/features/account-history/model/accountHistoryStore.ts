@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { accountHistoryApi } from '../api/accountHistoryApi';
-import type { DateRange, TransactionHistoryDto, FormattedTransaction, DateSection } from './types';
+import type { DateRange, DateSection, FormattedTransaction, TransactionHistoryDto } from './types';
 
 interface AccountHistoryState {
   // 데이터
@@ -96,18 +96,14 @@ export const useAccountHistoryStore = create<AccountHistoryStore>((set, get) => 
     set({ isLoading: true, error: null });
 
     try {
-      // 개발 중에는 Mock API 사용
-      const response = await accountHistoryApi.getMockAccountHistory(dateRange);
+      // 반환형: AccountHistoryResponse
+      const response = await accountHistoryApi.getAccountHistory(dateRange);
 
-      if (response.success && response.data) {
-        set({ 
-          transactions: response.data.transactionHistoryDtoList,
-          totalCount: response.data.totalCount,
-          isLoading: false 
-        });
-      } else {
-        throw new Error(response.error || '데이터를 불러오는데 실패했습니다');
-      }
+      set({
+        transactions: response.transactionHistoryDtoList,
+        totalCount: response.totalCount,
+        isLoading: false
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : '네트워크 오류가 발생했습니다',

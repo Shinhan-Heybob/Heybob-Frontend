@@ -121,8 +121,28 @@ class ApiClient {
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
+
+  async patch<T>(endpoint: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+    let body: string | undefined = undefined;
+    if (data !== undefined && data !== null) {
+      try {
+        body = JSON.stringify(data);
+        console.log('✅ PATCH - JSON 직렬화 성공:', body);
+      } catch (error) {
+        console.error('❌ PATCH - JSON 직렬화 실패:', error);
+        throw new Error('데이터를 JSON으로 변환할 수 없습니다');
+      }
+    }
+    
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body,
+      ...options,
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
 export const chatApiClient = new ApiClient(CHAT_API_BASE_URL);
 export type { ApiResponse };
+

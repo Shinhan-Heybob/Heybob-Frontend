@@ -1,6 +1,6 @@
 import { Text } from '@/src/shared/ui';
 import { useMealStore } from '../model/mealStore';
-import { useAccountStore } from '../../account/model/accountStore';
+import { useAccountStore } from '@/src/entities/account/model/accountStore';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 

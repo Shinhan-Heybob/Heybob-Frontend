@@ -2,7 +2,7 @@ import { getAvatarById } from '@/src/shared/data/avatars';
 import { Text } from '@/src/shared/ui';
 import { QRModal } from '@/src/shared/ui/molecules/QRModal';
 import { useAuthStore } from '@/src/store';
-import { useUserStore } from '../../user/model/userStore';
+import { useUserStore } from '@/src/entities/user/model/userStore';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';

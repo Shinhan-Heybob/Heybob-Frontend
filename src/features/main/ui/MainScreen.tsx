@@ -3,9 +3,9 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { StudentCard } from './StudentCard';
 import { MealSummary } from './MealSummary';
 import { FeatureGrid } from './FeatureGrid';
-import { useUserStore } from '../../user/model/userStore';
+import { useUserStore } from '@/src/entities/user/model/userStore';
 import { useMealStore } from '../model/mealStore';
-import { useAccountStore } from '../../account/model/accountStore';
+import { useAccountStore } from '@/src/entities/account/model/accountStore';
 
 export const MainScreen: React.FC = () => {
   const { fetchUserInfo } = useUserStore();

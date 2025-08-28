@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { mainApi } from '../../main/api/mainApi';
-import type { AccountBalance } from '../../main/types';
+import { mainApi } from '@/src/features/main/api/mainApi';
+import type { AccountBalance } from '@/src/features/main/types';
 
 interface AccountState {
   balance: AccountBalance | null;

@@ -5,7 +5,7 @@ import type { AccountNoResponse, DepositRequest, DepositResponse, UpdateProfileR
 export const mypageApi = {
   // 사용자 정보 조회
   getUserInfo: async (userId: number) => {
-    return apiClient.get<UserInfo>(`/user/${userId}`);
+    return apiClient.get<UserInfo>(`/user/my`);
   },
 
   // 프로필 이미지 업데이트

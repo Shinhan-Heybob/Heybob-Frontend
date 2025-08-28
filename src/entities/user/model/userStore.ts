@@ -30,6 +30,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
     
     try {
       const userId = await storage.getUserId();
+      console.log('🔍 userStore - storage.getUserId():', userId);
       if (!userId) {
         throw new Error('사용자 정보가 없습니다. 다시 로그인해주세요.');
       }

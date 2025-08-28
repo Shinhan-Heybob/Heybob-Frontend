@@ -65,6 +65,7 @@ class ApiClient {
       // 401 Unauthorized 처리
       if (response.status === 401) {
         console.warn('🔒 인증 토큰이 만료되었습니다.');
+        console.log('🔍 client.ts - storage.clearAll() 호출됨');
         await storage.clearAll();
         // 로그아웃 처리는 AuthStore에서 담당
         return {

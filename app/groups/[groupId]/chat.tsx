@@ -1,30 +1,62 @@
 import { SharedChatScreen } from '@/src/shared/ui/organisms/ChatScreen';
 import { useLocalSearchParams } from 'expo-router';
+import { useUserStore } from '@/src/entities/user/model/userStore';
+import { useEffect, useState } from 'react';
+import { apiClient } from '@/src/shared/api/client';
 
-// 임시 사용자 정보 (실제로는 전역 상태나 props로 받아야 함)
+// 실제 사용자 정보를 사용하되, 없으면 임시 정보 사용
 const TEMP_CURRENT_USER = {
-  userId: 'user1',
-  name: '김철수',
-  studentId: '2021001',
+  userId: '1234567',
+  name: '김미림',
+  studentId: '1234567',
   department: '컴퓨터공학과',
-  profileImageUrl: '',
+  profileImageUrl: 'http://profileImage/kim-mirim.jpg',
 };
 
 export default function GroupChatPage() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  
-  // 실제로는 groupId를 통해 채팅방 정보를 가져와야 함
-  const roomId = `group_${groupId}`;
-  const roomInfo = {
-    roomId: roomId,
+  const { userInfo } = useUserStore();
+  const [roomInfo, setRoomInfo] = useState({
+    roomId: groupId,
     title: '모임 채팅방',
     participantCount: 4,
-  };
+  });
+  
+  // 실제 사용자 정보 사용 (없으면 임시 정보)
+  const currentUser = userInfo ? {
+    userId: userInfo.id.toString(),
+    name: userInfo.name,
+    studentId: userInfo.studentId,
+    department: userInfo.department,
+    profileImageUrl: userInfo.profileUrl || 'http://profileImage/kim-mirim.jpg',
+  } : TEMP_CURRENT_USER;
+  
+  // 그룹 정보 가져오기
+  useEffect(() => {
+    const fetchGroupInfo = async () => {
+      try {
+        const response = await apiClient.get(`/groups/${groupId}`);
+        if (response.success && response.data) {
+          setRoomInfo({
+            roomId: groupId,
+            title: response.data.name || '모임 채팅방',
+            participantCount: response.data.memberCount || 4,
+          });
+        }
+      } catch (error) {
+        console.log('그룹 정보 로드 실패, 기본값 사용:', error);
+      }
+    };
+
+    if (groupId) {
+      fetchGroupInfo();
+    }
+  }, [groupId]);
 
   return (
     <SharedChatScreen 
-      roomId={roomId}
-      currentUser={TEMP_CURRENT_USER}
+      roomId={groupId}
+      currentUser={currentUser}
       roomInfo={roomInfo}
       chatType="group"
     />

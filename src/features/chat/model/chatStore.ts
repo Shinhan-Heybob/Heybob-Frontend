@@ -348,7 +348,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         user.userName, 
         user.studentId,
         roomId,
-        __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws',
+        undefined, // 기본값 사용 (환경변수에서 가져옴)
         user.profileImageUrl || ''
       );
       
@@ -360,7 +360,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       }, 500);
       
-      // 타임아웃 설정 (10초)
+      // 타임아웃 설정 (60초)
       setTimeout(() => {
         if (!ChatService.isConnected()) {
           clearInterval(checkConnection);
@@ -372,7 +372,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             }
           });
         }
-      }, 10000);
+      }, 60000);
       
     } catch (error: any) {
       set({ 

@@ -74,16 +74,23 @@ class ChatService {
     userName: string,
     studentId: string,
     roomId: string,
-    serverUrl: string = __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws',
+    serverUrl?: string,
     profileImageUrl: string = ''
   ) {
+    // 환경변수에서 WebSocket URL 구성
+    const websocketBaseUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'http://172.18.135.1:8081';
+    const finalServerUrl = serverUrl || `${websocketBaseUrl}/ws`;
+    const host = websocketBaseUrl.replace('http://', '').replace('https://', '').replace('ws://', '').replace('wss://', '').split(':')[0];
+    
     console.log('🔍 ChatService connect 파라미터:', {
       userId,
       userName,
       studentId,
       roomId,
-      serverUrl,
-      profileImageUrl
+      serverUrl: finalServerUrl,
+      profileImageUrl,
+      websocketBaseUrl,
+      host
     });
     
     // 사용자 정보 저장
@@ -91,25 +98,33 @@ class ChatService {
     this.currentUserName = userName;
     this.currentStudentId = studentId;
     
-    // 연결 헤더에 사용자 정보 포함 (선택사항)
+    // STOMP 표준 연결 헤더
     const connectHeaders = {
+      'accept-version': '1.0,1.1,1.2',
+      'heart-beat': '10000,10000',
+      'host': host,
       'X-User-Id': userId,
       'X-Student-Id': studentId,
       'X-User-Name': userName,
       ...(profileImageUrl && { 'X-Profile-Image': profileImageUrl })
     };
     
-    console.log('🔍 ChatService 연결 URL:', serverUrl);
+    console.log('🔍 ChatService 연결 URL:', finalServerUrl);
     console.log('🔍 ChatService 연결 헤더:', connectHeaders);
     
+    // @stomp/stompjs Client 생성 (서버 호환성 최적화)
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS(serverUrl),
+      webSocketFactory: () => new SockJS(finalServerUrl),
       connectHeaders,
       debug: (str) => console.log('[ChatService]', str),
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      connectionTimeout: 10000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      connectionTimeout: 60000, // 60초로 증가
+      // 서버 호환성을 위한 추가 설정
+      splitLargeFrames: false,
+      forceBinaryWSFrames: false,
+      appendMissingNULLonIncoming: false,
     });
 
     this.stompClient.onConnect = (frame) => {
@@ -148,11 +163,9 @@ class ChatService {
       console.error('[ChatService] STOMP Error - Body:', frame.body);
       console.error('[ChatService] STOMP Error - Full frame:', frame);
       this.connected = false;
-    };
-
-    this.stompClient.onDisconnect = (frame) => {
-      console.log('[ChatService] Disconnected from chat server:', frame);
-      this.connected = false;
+      if (this.onErrorReceived) {
+        this.onErrorReceived({ message: frame.headers['message'], body: frame.body });
+      }
     };
 
     this.stompClient.onWebSocketClose = (event) => {
@@ -168,11 +181,7 @@ class ChatService {
       this.connected = false;
     };
 
-    // 연결 상태 변화 로깅 추가
-    this.stompClient.beforeConnect = () => {
-      console.log('[ChatService] 🔄 Attempting STOMP connection...');
-    };
-
+    // 연결 시작
     this.stompClient.activate();
   }
 
@@ -185,8 +194,16 @@ class ChatService {
     try {
       console.log('🔍 메시지 전송:', { roomId, content, messageType });
       
+      // 사용자 정보 헤더 구성
+      const headers: { [key: string]: string } = {
+        'X-User-Id': this.currentUserId,
+        'X-Student-Id': this.currentStudentId,
+        'X-User-Name': this.currentUserName
+      };
+
       this.stompClient.publish({
         destination: `/app/chat/${roomId}`,
+        headers: headers,
         body: JSON.stringify({
           roomId: roomId,
           content: content,
@@ -226,8 +243,16 @@ class ChatService {
     try {
       console.log('🤖 AI 질문 전송:', { roomId, question });
       
+      // 사용자 정보 헤더 구성
+      const headers: { [key: string]: string } = {
+        'X-User-Id': this.currentUserId,
+        'X-Student-Id': this.currentStudentId,
+        'X-User-Name': this.currentUserName
+      };
+      
       this.stompClient.publish({
         destination: `/app/chat/${roomId}`,
+        headers: headers,
         body: JSON.stringify({
           roomId: roomId,
           content: question,
@@ -263,11 +288,21 @@ class ChatService {
 
   async fetchChatHistory(roomId: string, userId: string, limit: number = 50) {
     try {
+      console.log('🔍 채팅 히스토리 요청:', {
+        roomId,
+        userId,
+        limit,
+        url: `/chat/rooms/${roomId}/messages?limit=${limit}`,
+        baseUrl: process.env.EXPO_PUBLIC_CHAT_API_URL
+      });
+
       const response = await chatApiClient.get(`/chat/rooms/${roomId}/messages?limit=${limit}`, {
         headers: {
           'X-User-Id': userId
         }
       });
+
+      console.log('🔍 채팅 히스토리 응답:', response);
 
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch chat history');
@@ -276,6 +311,11 @@ class ChatService {
       return response.data;
     } catch (error) {
       console.error('[ChatService] Error fetching chat history:', error);
+      console.error('[ChatService] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }

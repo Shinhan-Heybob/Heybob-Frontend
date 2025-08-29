@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import type { ChatListItem, ChatStatus, ChatType } from '@/src/features/chat-list/model/types';
+import type { ChatListItem, ChatListApiResponse, ChatStatus, ChatType } from '@/src/features/chat-list/model/types';
+import { convertApiResponseToItem } from '@/src/features/chat-list/model/types';
 
 export const chatListApi = {
   // 실제 API 호출
@@ -19,7 +20,17 @@ export const chatListApi = {
     const queryString = queryParams.toString();
     const endpoint = queryString ? `/meal-appointments/list?${queryString}` : '/meal-appointments/list';
     
-    return apiClient.get<ChatListItem[]>(endpoint);
+    const response = await apiClient.get<ChatListApiResponse[]>(endpoint);
+    
+    // API 응답을 클라이언트 타입으로 변환
+    if (response.success && response.data) {
+      return {
+        ...response,
+        data: response.data.map(convertApiResponseToItem)
+      };
+    }
+    
+    return response as any;
   },
 
   // 개발용 Mock API

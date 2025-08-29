@@ -65,14 +65,14 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
     const lastMessage = messages[messages.length - 1];
     const isNewMessage = lastMessage.timestamp > previousLatestTimestamp;
     
-    // console.log('📱 MessageList Auto-Scroll Debug:', {
-    //   messagesLength: messages.length,
-    //   lastMessageTime: lastMessage.timestamp,
-    //   previousTime: previousLatestTimestamp,
-    //   isNewMessage,
-    //   isNearBottom,
-    //   shouldScroll: isNewMessage && (isNearBottom || previousLatestTimestamp === '')
-    // });
+    console.log('📱 MessageList Auto-Scroll Debug:', {
+      messagesLength: messages.length,
+      lastMessageTime: lastMessage.timestamp,
+      previousTime: previousLatestTimestamp,
+      isNewMessage,
+      isNearBottom,
+      shouldScroll: isNewMessage && (isNearBottom || previousLatestTimestamp === '')
+    });
     
     // 이전 최신 timestamp 업데이트
     setPreviousLatestTimestamp(lastMessage.timestamp);
@@ -86,11 +86,11 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
     // 새 메시지이고 사용자가 아래쪽에 있으면 자동 스크롤
     if (isNewMessage && isNearBottom) {
       console.log('🚀 Auto scrolling to bottom');
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
-      });
+      }, 50);
     }
-  }, [messages.length, isNearBottom]);
+  }, [messages]);
 
   const renderMessage = ({ item: message }: { item: ChatMessage }) => {
     const category = getMessageCategory(message.messageType);
@@ -179,9 +179,6 @@ export const MessageList = forwardRef<FlatList, MessageListProps>(({
         removeClippedSubviews={false}
         maxToRenderPerBatch={20}
         windowSize={10}
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 1,
-        }}
       />
     </View>
   );

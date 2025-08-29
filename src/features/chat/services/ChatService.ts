@@ -74,14 +74,23 @@ class ChatService {
     userName: string,
     studentId: string,
     roomId: string,
-    serverUrl: string = __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws'
+    serverUrl?: string,
+    profileImageUrl: string = ''
   ) {
+    // 환경변수에서 WebSocket URL 구성
+    const websocketBaseUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'http://172.18.135.1:8081';
+    const finalServerUrl = serverUrl || `${websocketBaseUrl}/ws`;
+    const host = websocketBaseUrl.replace('http://', '').replace('https://', '').replace('ws://', '').replace('wss://', '').split(':')[0];
+    
     console.log('🔍 ChatService connect 파라미터:', {
       userId,
       userName,
       studentId,
       roomId,
-      serverUrl
+      serverUrl: finalServerUrl,
+      profileImageUrl,
+      websocketBaseUrl,
+      host
     });
     
     // 사용자 정보 저장
@@ -89,32 +98,40 @@ class ChatService {
     this.currentUserName = userName;
     this.currentStudentId = studentId;
     
-    // URL에 사용자 정보를 파라미터로 추가
-    const urlWithParams = `${serverUrl}?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}&studentId=${encodeURIComponent(studentId)}`;
-    
+    // STOMP 표준 연결 헤더
     const connectHeaders = {
-      'accept-version': '1.2',
-      'host': __DEV__ ? '70.12.246.239' : 'localhost'
+      'accept-version': '1.0,1.1,1.2',
+      'heart-beat': '10000,10000',
+      'host': host,
+      'X-User-Id': userId,
+      'X-Student-Id': studentId,
+      'X-User-Name': userName,
+      ...(profileImageUrl && { 'X-Profile-Image': profileImageUrl })
     };
     
-    console.log('🔍 ChatService 연결 URL:', urlWithParams);
+    console.log('🔍 ChatService 연결 URL:', finalServerUrl);
     console.log('🔍 ChatService 연결 헤더:', connectHeaders);
     
+    // @stomp/stompjs Client 생성 (서버 호환성 최적화)
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS(urlWithParams),
+      webSocketFactory: () => new SockJS(finalServerUrl),
       connectHeaders,
       debug: (str) => console.log('[ChatService]', str),
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      connectionTimeout: 10000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      connectionTimeout: 60000, // 60초로 증가
+      // 서버 호환성을 위한 추가 설정
+      splitLargeFrames: false,
+      forceBinaryWSFrames: false,
+      appendMissingNULLonIncoming: false,
     });
 
     this.stompClient.onConnect = (frame) => {
       console.log('[ChatService] ✅ STOMP Connected successfully:', frame);
       this.connected = true;
 
-      // 채팅방 구독 with 헤더
+      // 채팅방 구독
       this.stompClient?.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
           const chatMessage = JSON.parse(message.body) as ChatMessageResponse;
@@ -125,14 +142,10 @@ class ChatService {
         } catch (error) {
           console.error('[ChatService] Message parsing error:', error);
         }
-      }, {
-        'X-User-Id': userId,
-        'X-Student-Id': studentId,
-        'X-User-Name': userName
       });
 
       // 에러 큐 구독
-      this.stompClient?.subscribe('/user/queue/errors', (error) => {
+      this.stompClient?.subscribe('/queue/errors', (error) => {
         try {
           const errorMessage = JSON.parse(error.body);
           console.log('[ChatService] Error received:', errorMessage);
@@ -142,8 +155,6 @@ class ChatService {
         } catch (err) {
           console.error('[ChatService] Error parsing error message:', err);
         }
-      }, {
-        'X-User-Id': userId
       });
     };
 
@@ -152,11 +163,9 @@ class ChatService {
       console.error('[ChatService] STOMP Error - Body:', frame.body);
       console.error('[ChatService] STOMP Error - Full frame:', frame);
       this.connected = false;
-    };
-
-    this.stompClient.onDisconnect = (frame) => {
-      console.log('[ChatService] Disconnected from chat server:', frame);
-      this.connected = false;
+      if (this.onErrorReceived) {
+        this.onErrorReceived({ message: frame.headers['message'], body: frame.body });
+      }
     };
 
     this.stompClient.onWebSocketClose = (event) => {
@@ -172,11 +181,7 @@ class ChatService {
       this.connected = false;
     };
 
-    // 연결 상태 변화 로깅 추가
-    this.stompClient.beforeConnect = () => {
-      console.log('[ChatService] 🔄 Attempting STOMP connection...');
-    };
-
+    // 연결 시작
     this.stompClient.activate();
   }
 
@@ -187,19 +192,20 @@ class ChatService {
     }
 
     try {
-      // 메시지 전송 시 사용자 정보 헤더 포함
-      const messageHeaders = {
+      console.log('🔍 메시지 전송:', { roomId, content, messageType });
+      
+      // 사용자 정보 헤더 구성
+      const headers: { [key: string]: string } = {
         'X-User-Id': this.currentUserId,
         'X-Student-Id': this.currentStudentId,
         'X-User-Name': this.currentUserName
       };
-      
-      console.log('🔍 메시지 전송 헤더:', messageHeaders);
-      
+
       this.stompClient.publish({
         destination: `/app/chat/${roomId}`,
-        headers: messageHeaders,
+        headers: headers,
         body: JSON.stringify({
+          roomId: roomId,
           content: content,
           messageType: messageType
         })
@@ -235,18 +241,20 @@ class ChatService {
     }
 
     try {
-      const messageHeaders = {
+      console.log('🤖 AI 질문 전송:', { roomId, question });
+      
+      // 사용자 정보 헤더 구성
+      const headers: { [key: string]: string } = {
         'X-User-Id': this.currentUserId,
         'X-Student-Id': this.currentStudentId,
         'X-User-Name': this.currentUserName
       };
       
-      console.log('🤖 AI 질문 전송 헤더:', messageHeaders);
-      
       this.stompClient.publish({
         destination: `/app/chat/${roomId}`,
-        headers: messageHeaders,
+        headers: headers,
         body: JSON.stringify({
+          roomId: roomId,
           content: question,
           messageType: MessageType.AI_BOT_REQUEST
         })
@@ -280,11 +288,21 @@ class ChatService {
 
   async fetchChatHistory(roomId: string, userId: string, limit: number = 50) {
     try {
+      console.log('🔍 채팅 히스토리 요청:', {
+        roomId,
+        userId,
+        limit,
+        url: `/chat/rooms/${roomId}/messages?limit=${limit}`,
+        baseUrl: process.env.EXPO_PUBLIC_CHAT_API_URL
+      });
+
       const response = await chatApiClient.get(`/chat/rooms/${roomId}/messages?limit=${limit}`, {
         headers: {
           'X-User-Id': userId
         }
       });
+
+      console.log('🔍 채팅 히스토리 응답:', response);
 
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch chat history');
@@ -293,6 +311,11 @@ class ChatService {
       return response.data;
     } catch (error) {
       console.error('[ChatService] Error fetching chat history:', error);
+      console.error('[ChatService] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }

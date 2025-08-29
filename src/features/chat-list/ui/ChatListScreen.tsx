@@ -67,7 +67,8 @@ export const ChatListScreen: React.FC = () => {
       pathname: '/chat/[roomId]',
       params: {
         roomId: item.chatRoomId.toString(),
-        chatType: chatType
+        chatType: chatType,
+        title: item.name
       }
     });
   };

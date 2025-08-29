@@ -30,7 +30,6 @@ export interface Lecture {
 
 export interface TimetableResponse {
   id: number;
-  timeTableName: string;
   lectures: Lecture[];
 }
 

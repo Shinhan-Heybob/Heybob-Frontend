@@ -1,12 +1,15 @@
 import { getAvatarById } from '@/src/shared/data/avatars';
 import { FriendData, searchFriends } from '@/src/shared/data/friends';
+import { SCHOOLS } from '@/src/shared/data/schools';
+import { DEPARTMENTS } from '@/src/shared/data/departments';
 import { Button, Text } from '@/src/shared/ui';
+import { QRScanModal } from '@/src/shared/ui/molecules/QRScanModal';
 import { useMealCreateStore } from '@/src/store';
 import { useGroupCreateStore } from '@/src/features/group-create/model/groupCreateStore';
 import { Image } from 'expo-image';
 import { router, usePathname } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 // Search Icon Component
@@ -14,6 +17,13 @@ const SearchIcon: React.FC<{ color?: string }> = ({ color = '#B8B8B8' }) => (
   <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
     <Circle cx="11" cy="11" r="8" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     <Path d="m21 21-4.35-4.35" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </Svg>
+);
+
+// QR Icon Component
+const QRIcon: React.FC<{ color?: string }> = ({ color = '#374151' }) => (
+  <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <Path d="M3 3h7v7H3V3zm2 2v3h3V5H5zm9-2h7v7h-7V3zm2 2v3h3V5h-3zM3 14h7v7H3v-7zm2 2v3h3v-3H5zm7-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm0 4h2v2h-2v-2z" fill={color}/>
   </Svg>
 );
 
@@ -48,6 +58,8 @@ export const FindFriendsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FriendData[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrScannedFriend, setQrScannedFriend] = useState<FriendData | null>(null);
 
   // 검색 실행
   useEffect(() => {
@@ -58,6 +70,48 @@ export const FindFriendsScreen: React.FC = () => {
       setSearchResults([]);
     }
   }, [searchQuery, searchType]);
+
+  // QR 스캔 성공 처리
+  const handleQRScanSuccess = (data: any) => {
+    // QR 생성 데이터 형식: { studentId, name, schoolId, departmentId, issueTime }
+    // schoolId와 departmentId로 실제 이름 찾기
+    const school = SCHOOLS.find(s => s.id === data.schoolId);
+    const department = DEPARTMENTS.find(d => d.id === data.departmentId);
+    
+    if (!school || !department) {
+      Alert.alert('오류', '학교 또는 학과 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    // QR 스캔된 친구 데이터 생성
+    const scannedFriend: FriendData & { isQRScanned: boolean } = {
+      id: `qr_${data.studentId}`,
+      name: data.name,
+      studentId: data.studentId,
+      school: school.name,
+      department: department.name,
+      avatarId: 'avatar_01', // 기본 아바타
+      isQRScanned: true,
+    };
+
+    // 이미 선택된 친구인지 확인
+    const isAlreadySelected = selectedFriends.some(f => f.studentId === data.studentId);
+    if (isAlreadySelected) {
+      Alert.alert('알림', '이미 선택된 친구입니다.');
+      return;
+    }
+
+    // QR 스캔 친구 설정 (검색 결과 상단에 표시)
+    setQrScannedFriend(scannedFriend);
+    setSearchQuery(''); // 검색어 초기화
+    setSearchResults([]); // 검색 결과 초기화
+  };
+
+  // 표시할 친구 목록 (QR 스캔 친구 + 검색 결과)
+  const displayedFriends = [
+    ...(qrScannedFriend ? [qrScannedFriend] : []),
+    ...searchResults.filter(f => f.studentId !== qrScannedFriend?.studentId),
+  ];
 
   const handleFriendToggle = (friend: FriendData) => {
     const isSelected = selectedFriends.some(f => f.id === friend.id);
@@ -94,7 +148,12 @@ export const FindFriendsScreen: React.FC = () => {
           <Text style={styles.backButtonText}>‹</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>친구 찾기</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity 
+          style={styles.qrButton}
+          onPress={() => setShowQRScanner(true)}
+        >
+          <QRIcon />
+        </TouchableOpacity>
       </View>
 
       {/* 검색 영역 */}
@@ -156,8 +215,8 @@ export const FindFriendsScreen: React.FC = () => {
 
       {/* 검색 결과 */}
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
-        {searchResults.length > 0 ? (
-          searchResults.map((friend) => {
+        {displayedFriends.length > 0 ? (
+          displayedFriends.map((friend) => {
             const isSelected = selectedFriends.some(f => f.id === friend.id);
             const avatarImage = getAvatarById(friend.avatarId);
             
@@ -170,6 +229,16 @@ export const FindFriendsScreen: React.FC = () => {
                     style={styles.avatar}
                     contentFit="contain"
                   />
+                  {/* QR 스캔 배지 */}
+                  {friend.isQRScanned && (
+                    <View style={styles.qrBadge}>
+                      <Image
+                        source={require('@/assets/images/icons/qr.png')}
+                        style={styles.qrBadgeIcon}
+                        contentFit="contain"
+                      />
+                    </View>
+                  )}
                 </View>
                 
                 {/* 친구 정보 */}
@@ -198,7 +267,7 @@ export const FindFriendsScreen: React.FC = () => {
               </View>
             );
           })
-        ) : searchQuery ? (
+        ) : searchQuery || qrScannedFriend ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>검색 결과가 없습니다</Text>
             <Text style={styles.emptySubText}>다른 검색어를 시도해보세요</Text>
@@ -239,6 +308,13 @@ export const FindFriendsScreen: React.FC = () => {
           />
         </View>
       )}
+      
+      {/* QR 스캔 모달 */}
+      <QRScanModal
+        visible={showQRScanner}
+        onClose={() => setShowQRScanner(false)}
+        onScanSuccess={handleQRScanSuccess}
+      />
     </View>
   );
 };
@@ -277,6 +353,12 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 40,
+  },
+  qrButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchSection: {
     backgroundColor: 'white',
@@ -379,6 +461,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    position: 'relative',
+  },
+  qrBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#7BBBFB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  qrBadgeIcon: {
+    width: 12,
+    height: 12,
   },
   avatar: {
     width: 40,

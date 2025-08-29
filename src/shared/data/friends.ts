@@ -7,6 +7,7 @@ export interface FriendData {
   school: string;
   department: string;
   avatarId: string;
+  isQRScanned?: boolean; // QR 스캔으로 추가된 친구 여부
 }
 
 // 더미 친구 데이터

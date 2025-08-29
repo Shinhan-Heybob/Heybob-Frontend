@@ -18,6 +18,9 @@ export const StudentCard: React.FC = () => {
 
   if (!currentUser) return null;
 
+  // QR 모달을 위한 User 타입 데이터 (user가 있을 때만)
+  const userForQR = user;
+
   // 타입에 따라 적절한 프로필 이미지 필드 사용
   const profileImageId = 'profileUrl' in currentUser 
     ? currentUser.profileUrl 
@@ -31,6 +34,13 @@ export const StudentCard: React.FC = () => {
   };
 
   const handleQRPress = () => {
+    console.log('🔍 StudentCard Debug:');
+    console.log('userInfo:', userInfo);
+    console.log('user (auth):', user);
+    console.log('currentUser:', currentUser);
+    console.log('currentUser.name:', currentUser?.name);
+    console.log('userForQR:', userForQR);
+    console.log('userForQR.name:', userForQR?.name);
     setShowQR(true);
   };
 
@@ -94,10 +104,11 @@ export const StudentCard: React.FC = () => {
       </View>
 
       {/* QR 모달 */}
-      {user && (
+      {userForQR && (
         <QRModal
           visible={showQR}
-          user={user}
+          user={userForQR}
+          currentUser={currentUser}
           onClose={() => setShowQR(false)}
         />
       )}

@@ -1,5 +1,6 @@
 import { getAvatarById } from '@/src/shared/data/avatars';
 import { User } from '@/src/shared/types/auth';
+import { UserInfo } from '@/src/features/main/types';
 import { Button, Text } from '@/src/shared/ui';
 import { Image } from 'expo-image';
 import React from 'react';
@@ -17,14 +18,16 @@ interface StudentQRData {
 interface QRModalProps {
   visible: boolean;
   user: User;
+  currentUser?: User | UserInfo; // 실제 표시할 사용자 정보
   onClose: () => void;
 }
 
 // QR 데이터 생성 함수
-const generateQRData = (user: User): string => {
+const generateQRData = (user: User, displayUser?: User | UserInfo): string => {
+  const actualName = displayUser?.name || user.name;
   const qrData: StudentQRData = {
     studentId: user.studentId,
-    name: user.name,
+    name: actualName, // 실제 이름 사용
     schoolId: user.school.id,
     departmentId: user.department.id,
     issueTime: Date.now(), // 현재 시간 (5분 유효)
@@ -33,8 +36,17 @@ const generateQRData = (user: User): string => {
   return JSON.stringify(qrData);
 };
 
-export const QRModal: React.FC<QRModalProps> = ({ visible, user, onClose }) => {
-  const qrData = generateQRData(user);
+export const QRModal: React.FC<QRModalProps> = ({ visible, user, currentUser, onClose }) => {
+  console.log('🔍 QRModal Debug:');
+  console.log('user received:', user);
+  console.log('currentUser received:', currentUser);
+  console.log('user.name:', user?.name);
+  console.log('currentUser.name:', currentUser?.name);
+  
+  // 표시용 사용자 정보 (currentUser 우선, 없으면 user)
+  const displayUser = currentUser || user;
+  
+  const qrData = generateQRData(user, currentUser);
   const avatarImage = getAvatarById(user.avatarId);
 
   // 한글명만 추출 (괄호 앞 부분)
@@ -75,10 +87,13 @@ export const QRModal: React.FC<QRModalProps> = ({ visible, user, onClose }) => {
                 {/* 정보 텍스트 */}
                 <View style={styles.infoContainer}>
                   <Text variant="body" style={styles.schoolInfo}>
-                    {getKoreanName(user.school.name)} / {getKoreanName(user.department.name)}
+                    {'university' in displayUser 
+                      ? `${getKoreanName(displayUser.university)} / ${getKoreanName(displayUser.department)}`
+                      : `${getKoreanName(displayUser.school.name)} / ${getKoreanName(displayUser.department.name)}`
+                    }
                   </Text>
                   <Text variant="title" style={styles.nameInfo}>
-                    {user.name}({user.studentId})
+                    {displayUser.name}({displayUser.studentId})
                   </Text>
                 </View>
               </View>

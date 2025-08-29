@@ -39,6 +39,10 @@ export const DEPARTMENTS: Department[] = [
   { id: 'dept_23', name: '의학과', schoolId: '5' },
   { id: 'dept_24', name: '치의학과', schoolId: '5' },
   { id: 'dept_25', name: '약학과', schoolId: '5' },
+  { id: 'dept_56', name: '예술학과', schoolId: '5' },
+  { id: 'dept_57', name: '물리학과', schoolId: '5' },
+  { id: 'dept_58', name: '경영학과', schoolId: '5' },
+  { id: 'dept_59', name: '사학과', schoolId: '5' },
   
   // 별빛대학교
   { id: 'dept_26', name: '천문학과', schoolId: '6' },

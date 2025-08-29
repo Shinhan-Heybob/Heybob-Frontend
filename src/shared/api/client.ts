@@ -44,23 +44,23 @@ class ApiClient {
         ...requestOptions,
       };
 
-      console.log(`🌐 API 요청: ${config.method || 'GET'} ${url}`);
+      // console.log(`🌐 API 요청: ${config.method || 'GET'} ${url}`);
       const authHeader = (config.headers as Record<string, string>)?.['Authorization'];
-      console.log(`🔑 Authorization 헤더:`, authHeader || '없음');
-      if (options.skipAuth) {
-        console.log(`⏭️ skipAuth: true - 토큰 제외됨`);
-      }
+      // console.log(`🔑 Authorization 헤더:`, authHeader || '없음');
+      // if (options.skipAuth) {
+      //   console.log(`⏭️ skipAuth: true - 토큰 제외됨`);
+      // }
       if (token) {
-        console.log(`🎫 실제 토큰: ${token.substring(0, 50)}...`);
+        // console.log(`🎫 실제 토큰: ${token.substring(0, 50)}...`);
         
         // JWT 토큰 만료 시간 확인
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           const now = Math.floor(Date.now() / 1000);
           const exp = payload.exp;
-          console.log(`⏰ 토큰 만료시간: ${new Date(exp * 1000).toLocaleString()}`);
-          console.log(`⏰ 현재 시간: ${new Date().toLocaleString()}`);
-          console.log(`⏰ 만료 여부: ${now > exp ? '만료됨' : '유효함'} (${exp - now}초 남음)`);
+          // console.log(`⏰ 토큰 만료시간: ${new Date(exp * 1000).toLocaleString()}`);
+          // console.log(`⏰ 현재 시간: ${new Date().toLocaleString()}`);
+          // console.log(`⏰ 만료 여부: ${now > exp ? '만료됨' : '유효함'} (${exp - now}초 남음)`);
         } catch (e) {
           console.log(`🎫 토큰 파싱 실패`);
         }
@@ -158,3 +158,4 @@ class ApiClient {
 export const apiClient = new ApiClient();
 export const chatApiClient = new ApiClient(CHAT_API_BASE_URL);
 export type { ApiResponse };
+

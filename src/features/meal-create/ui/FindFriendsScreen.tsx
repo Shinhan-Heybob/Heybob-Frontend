@@ -74,9 +74,16 @@ export const FindFriendsScreen: React.FC = () => {
   // QR 스캔 성공 처리
   const handleQRScanSuccess = (data: any) => {
     // QR 생성 데이터 형식: { studentId, name, schoolId, departmentId, issueTime }
+    console.log('🔍 QR 스캔 데이터:', data);
+    console.log('🔍 찾는 schoolId:', data.schoolId);
+    console.log('🔍 찾는 departmentId:', data.departmentId);
+    
     // schoolId와 departmentId로 실제 이름 찾기
     const school = SCHOOLS.find(s => s.id === data.schoolId);
     const department = DEPARTMENTS.find(d => d.id === data.departmentId);
+    
+    console.log('🔍 찾은 school:', school);
+    console.log('🔍 찾은 department:', department);
     
     if (!school || !department) {
       Alert.alert('오류', '학교 또는 학과 정보를 찾을 수 없습니다.');

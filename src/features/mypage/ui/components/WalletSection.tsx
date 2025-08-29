@@ -3,12 +3,14 @@ import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react
 import { mypageApi } from '../../api/mypageApi';
 import { DepositModal } from './DepositModal';
 import { useAccountStore } from '@/src/entities/account/model/accountStore';
+import { useAccountHistoryStore } from '@/src/features/account-history/model/accountHistoryStore';
 
 export const WalletSection: React.FC = () => {
   const [accountNo, setAccountNo] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const { fetchBalance } = useAccountStore();
+  const { loadAccountHistory } = useAccountHistoryStore();
 
   // 컴포넌트 마운트 시 계좌번호 로드
   useEffect(() => {
@@ -43,9 +45,20 @@ export const WalletSection: React.FC = () => {
   };
 
   const handleDepositSuccess = async () => {
-    // 입금 성공 시 메인화면의 잔액 새로고침
-    console.log('입금 성공 - 잔액 새로고침');
-    await fetchBalance();
+    // 입금 성공 시 잔액 및 계좌 내역 새로고침
+    console.log('입금 성공 - 잔액 및 계좌 내역 새로고침');
+    
+    try {
+      // 병렬로 잔액과 계좌 내역 새로고침
+      await Promise.all([
+        fetchBalance(),           // 메인 화면 잔액 업데이트
+        loadAccountHistory()     // 계좌 내역 새로고침
+      ]);
+      
+      console.log('✅ 입금 후 데이터 새로고침 완료');
+    } catch (error) {
+      console.error('❌ 데이터 새로고침 중 오류:', error);
+    }
   };
 
   return (

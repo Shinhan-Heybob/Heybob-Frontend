@@ -1,6 +1,8 @@
-import { getAvatarById } from '@/src/shared/data/avatars';
-import { User } from '@/src/shared/types/auth';
 import { UserInfo } from '@/src/features/main/types';
+import { getAvatarById } from '@/src/shared/data/avatars';
+import { DEPARTMENTS } from '@/src/shared/data/departments';
+import { SCHOOLS } from '@/src/shared/data/schools';
+import { User } from '@/src/shared/types/auth';
 import { Button, Text } from '@/src/shared/ui';
 import { Image } from 'expo-image';
 import React from 'react';
@@ -25,13 +27,59 @@ interface QRModalProps {
 // QR 데이터 생성 함수
 const generateQRData = (user: User, displayUser?: User | UserInfo): string => {
   const actualName = displayUser?.name || user.name;
+  
+  // 기본값은 user에서 가져오지만, displayUser가 있으면 우선 사용
+  let actualDepartmentId = user.department.id;
+  let actualSchoolId = user.school.id;
+  
+  if (displayUser && 'department' in displayUser && typeof displayUser.department === 'string') {
+    // UserInfo 타입인 경우 (department가 문자열)
+    // 실제 학과명으로 department ID 찾기
+    const actualDepartment = DEPARTMENTS.find(dept => 
+      dept.name === displayUser.department
+    );
+    
+    // UserInfo 타입에서는 university 속성이 있음
+    if ('university' in displayUser) {
+      // 실제 학교명으로 school ID 찾기 (괄호 제거)
+      const schoolName = displayUser.university.split(' (')[0];
+      const actualSchool = SCHOOLS.find(school => 
+        school.name.includes(schoolName)
+      );
+      
+      if (actualSchool) {
+        actualSchoolId = actualSchool.id;
+      } else {
+        console.warn('🔍 QR 생성 - 학교를 찾을 수 없습니다:', schoolName);
+      }
+      
+      console.log('학교명:', schoolName);
+      console.log('찾은 학교:', actualSchool);
+    }
+    
+    // displayUser 정보가 있으면 반드시 사용 (user의 하드코딩된 값 무시)
+    if (actualDepartment) {
+      actualDepartmentId = actualDepartment.id;
+    } else {
+      console.warn('🔍 QR 생성 - 학과를 찾을 수 없습니다:', displayUser.department);
+    }
+    
+    // console.log('🔍 QR 생성 - 실제 학과 찾기:');
+    // console.log('학과명:', displayUser.department);
+    // console.log('찾은 학과:', actualDepartment);
+    // console.log('최종 department ID:', actualDepartmentId);
+    // console.log('최종 school ID:', actualSchoolId);
+  }
+  
   const qrData: StudentQRData = {
-    studentId: user.studentId,
-    name: actualName, // 실제 이름 사용
-    schoolId: user.school.id,
-    departmentId: user.department.id,
-    issueTime: Date.now(), // 현재 시간 (5분 유효)
+    studentId: displayUser?.studentId || user.studentId,
+    name: actualName,
+    schoolId: actualSchoolId,
+    departmentId: actualDepartmentId,
+    issueTime: Date.now(),
   };
+  
+  console.log('🔍 최종 QR 데이터:', qrData);
   
   return JSON.stringify(qrData);
 };

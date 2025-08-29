@@ -4,6 +4,7 @@ import { MealInfoCard, type MealInfo as MealInfoCardType } from '@/src/shared/ui
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { mealInfoApi } from '../api/mealInfoApi';
 import { MealInfoHeader } from './components/MealInfoHeader';
 
 interface MealInfo {
@@ -34,6 +35,7 @@ interface MealChatInfoScreenProps {
 export const MealChatInfoScreen: React.FC<MealChatInfoScreenProps> = ({ mealId }) => {
   const [mealInfo, setMealInfo] = useState<MealInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // MealInfo → MealInfoCard 타입 변환 함수
   const convertToMealInfoCardType = (info: MealInfo): MealInfoCardType => {
@@ -52,59 +54,23 @@ export const MealChatInfoScreen: React.FC<MealChatInfoScreenProps> = ({ mealId }
 
   const loadMealInfo = async () => {
     try {
-      // TODO: 실제 API 호출로 교체
-      // const response = await mealApi.getMealInfo(mealId);
+      setLoading(true);
+      setError(null);
       
-      // 임시 목 데이터
-      const mockMealInfo: MealInfo = {
-        mealId,
-        title: '학식 먹으러 가는 팟',
-        date: '2025-07-28',
-        time: '13:55',
-        memo: '맛있게 먹어요!',
-        host: {
-          name: '김지은',
-          studentId: '1913998',
-          department: '경영학과',
-          profileUrl: 'avatar_01'
-        },
-        participants: [
-          {
-            name: '이지민',
-            studentId: '1326123',
-            department: '경영학과',
-            profileUrl: 'avatar_02'
-          },
-          {
-            name: '김미림',
-            studentId: '234123',
-            department: '경영학과',
-            profileUrl: 'avatar_01'
-          },
-          {
-            name: '이예린',
-            studentId: '1326123',
-            department: '경영학과',
-            profileUrl: 'avatar_02'
-          },
-          {
-            name: '박재은',
-            studentId: '234123',
-            department: '경영학과',
-            profileUrl: 'avatar_01'
-          }
-        ],
-        chatRoomId: 'room-meal-456'
-      };
-
-      setTimeout(() => {
-        setMealInfo(mockMealInfo);
-        setLoading(false);
-      }, 500);
-
+      const response = await mealInfoApi.getMealAppointmentInfo(mealId);
+      
+      if (response.success && response.data) {
+        setMealInfo(response.data);
+      } else {
+        setError(response.error || '밥약 정보를 불러오는데 실패했습니다');
+        Alert.alert('오류', response.error || '밥약 정보를 불러올 수 없습니다.');
+      }
     } catch (error) {
       console.error('Failed to load meal info:', error);
-      Alert.alert('오류', '밥약 정보를 불러올 수 없습니다.');
+      const errorMessage = '밥약 정보를 불러오는 중 오류가 발생했습니다';
+      setError(errorMessage);
+      Alert.alert('오류', errorMessage);
+    } finally {
       setLoading(false);
     }
   };

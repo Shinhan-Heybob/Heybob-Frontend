@@ -1,6 +1,7 @@
 import { Button, Text } from '@/src/shared/ui';
 import { router } from 'expo-router';
 import React from 'react';
+import { useMealCreateStore } from '@/src/store';
 import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from './components/MealCreateHeader';
@@ -10,6 +11,7 @@ interface MealSuccessScreenProps {
 }
 
 export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPress }) => {
+  const { createdAppointmentId } = useMealCreateStore();
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
@@ -19,12 +21,13 @@ export const MealSuccessScreen: React.FC<MealSuccessScreenProps> = ({ onBackPres
   };
 
   const handleGoToMealInfo = () => {
-    // 임시 밥약 ID로 밥약 정보 페이지 이동 (나중에 실제 API 연동 시 수정)
-    const tempMealId = 'meal-123';
+    if (!createdAppointmentId) {
+      console.error('생성된 밥약 ID가 없습니다');
+      return;
+    }
     
-    console.log('밥약 정보 페이지로 이동:', tempMealId);
-    // @ts-ignore
-    router.replace(`/meal/${tempMealId}`);
+    console.log('밥약 정보 페이지로 이동:', createdAppointmentId);
+    router.replace(`/meal/${createdAppointmentId}`);
   };
 
   return (

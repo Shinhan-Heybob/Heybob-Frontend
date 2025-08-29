@@ -1,8 +1,8 @@
 import { Button, Text } from '@/src/shared/ui';
 import { useMealCreateStore } from '@/src/store';
 import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from './components/MealCreateHeader';
@@ -13,10 +13,19 @@ interface MealDetailsScreenProps {
 }
 
 export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPress, onNext }) => {
-  const { selectedDate, selectedTimeSlot, selectedFriends } = useMealCreateStore();
+  const { selectedDate, selectedTimeSlot, selectedFriends, createMealAppointment, isCreatingMeal, error, clearError } = useMealCreateStore();
   const [mealName, setMealName] = useState('');
   const [memo, setMemo] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // 에러 처리
+  useEffect(() => {
+    if (error) {
+      Alert.alert('오류', error, [
+        { text: '확인', onPress: clearError }
+      ]);
+    }
+  }, [error, clearError]);
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -26,20 +35,25 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
     }
   };
 
-  const handleCreateMeal = () => {
+  const handleCreateMeal = async () => {
     // 밥약 이름과 메모가 모두 입력되었는지 확인
     if (!mealName.trim() || !memo.trim()) {
       return;
     }
     
-    // console.log('밥약 만들기 - 3단계로 이동', { mealName, memo });
-    if (onNext) {
-      onNext();
+    try {
+      const appointmentId = await createMealAppointment(mealName.trim(), memo.trim());
+      
+      if (appointmentId && onNext) {
+        onNext(); // 성공 시 다음 단계로
+      }
+    } catch (error) {
+      console.error('밥약 생성 실패:', error);
     }
   };
 
   // 버튼 활성화 조건
-  const isCreateButtonEnabled = mealName.trim().length > 0 && memo.trim().length > 0;
+  const isCreateButtonEnabled = mealName.trim().length > 0 && memo.trim().length > 0 && !isCreatingMeal;
 
   const handleMealNameFocus = () => {
     setTimeout(() => {
@@ -147,7 +161,7 @@ export const MealDetailsScreen: React.FC<MealDetailsScreenProps> = ({ onBackPres
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="밥약 만들기"
+          title={isCreatingMeal ? "밥약 생성 중..." : "밥약 만들기"}
           onPress={handleCreateMeal}
           disabled={!isCreateButtonEnabled}
           style={[

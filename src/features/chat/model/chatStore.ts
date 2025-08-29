@@ -348,7 +348,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         user.userName, 
         user.studentId,
         roomId,
-        __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws'
+        __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws',
+        user.profileImageUrl || ''
       );
       
       // 연결 상태 체크
@@ -507,11 +508,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
         historyResponse = await ChatService.fetchChatHistory(roomId, currentUser.userId);
       }
 
-      // 새로운 API 응답 구조 처리: {messages: [], hasMore: boolean, ...}
-      const messages = historyResponse?.messages || historyResponse || [];
-      const hasMore = historyResponse?.hasMore ?? (messages.length > 0);
+      // API 응답 구조: {messages: [], lastMessageId: string, hasMore: boolean, totalCount: number}
+      const messages = historyResponse?.messages || [];
+      const hasMore = historyResponse?.hasMore ?? false;
+      const lastMessageId = historyResponse?.lastMessageId || null;
+      const totalCount = historyResponse?.totalCount || messages.length;
 
-      console.log('API 응답 처리:', { historyResponse, messages: messages.length, hasMore });
+      console.log('API 응답 처리:', { 
+        messages: messages.length, 
+        hasMore, 
+        lastMessageId,
+        totalCount 
+      });
 
       // 기존 메시지에 추가 (중복 제거)
       set((state) => {

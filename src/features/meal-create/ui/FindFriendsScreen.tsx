@@ -1,7 +1,8 @@
 import { getAvatarById } from '@/src/shared/data/avatars';
-import { FriendData, searchFriends } from '@/src/shared/data/friends';
+import { FriendData } from '@/src/shared/data/friends';
 import { SCHOOLS } from '@/src/shared/data/schools';
 import { DEPARTMENTS } from '@/src/shared/data/departments';
+import { searchUsers, User, mockUsers } from '@/src/shared/api/userApi';
 import { Button, Text } from '@/src/shared/ui';
 import { QRScanModal } from '@/src/shared/ui/molecules/QRScanModal';
 import { useMealCreateStore } from '@/src/store';
@@ -60,15 +61,72 @@ export const FindFriendsScreen: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [qrScannedFriend, setQrScannedFriend] = useState<FriendData | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   // 검색 실행
   useEffect(() => {
-    if (searchQuery.trim()) {
-      const results = searchFriends(searchQuery, searchType);
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
-    }
+    const performSearch = async () => {
+      if (searchQuery.trim()) {
+        setIsSearching(true);
+        try {
+          // API 호출
+          const response = await searchUsers(searchQuery);
+          
+          if (response.success && response.data) {
+            // User 타입을 FriendData 타입으로 변환
+            const friendResults: FriendData[] = response.data.map((user: User) => ({
+              id: user.studentId,
+              name: user.name,
+              studentId: user.studentId,
+              school: user.university,
+              department: user.department,
+              avatarId: 'avatar_01', // 기본 아바타
+              profileUrl: user.profileUrl,
+            }));
+            setSearchResults(friendResults);
+          } else {
+            // API 실패 시 목 데이터 사용
+            console.log('API 실패, 목 데이터 사용');
+            const mockResults: FriendData[] = mockUsers
+              .filter(user => {
+                const query = searchQuery.toLowerCase();
+                if (searchType === 'name') {
+                  return user.name.toLowerCase().includes(query);
+                } else if (searchType === 'studentId') {
+                  return user.studentId.includes(query);
+                } else if (searchType === 'department') {
+                  return user.department.toLowerCase().includes(query);
+                }
+                return false;
+              })
+              .map(user => ({
+                id: user.studentId,
+                name: user.name,
+                studentId: user.studentId,
+                school: user.university,
+                department: user.department,
+                avatarId: 'avatar_01',
+                profileUrl: user.profileUrl,
+              }));
+            setSearchResults(mockResults);
+          }
+        } catch (error) {
+          console.error('검색 오류:', error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    };
+
+    // 디바운싱 처리
+    const debounceTimer = setTimeout(() => {
+      performSearch();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
   }, [searchQuery, searchType]);
 
   // QR 스캔 성공 처리
@@ -222,7 +280,11 @@ export const FindFriendsScreen: React.FC = () => {
 
       {/* 검색 결과 */}
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
-        {displayedFriends.length > 0 ? (
+        {isSearching ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>검색 중...</Text>
+          </View>
+        ) : displayedFriends.length > 0 ? (
           displayedFriends.map((friend) => {
             const isSelected = selectedFriends.some(f => f.id === friend.id);
             const avatarImage = getAvatarById(friend.avatarId);

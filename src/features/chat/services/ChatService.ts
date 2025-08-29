@@ -74,14 +74,16 @@ class ChatService {
     userName: string,
     studentId: string,
     roomId: string,
-    serverUrl: string = __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws'
+    serverUrl: string = __DEV__ ? 'http://70.12.246.239:8081/ws' : 'http://localhost:8081/ws',
+    profileImageUrl: string = ''
   ) {
     console.log('🔍 ChatService connect 파라미터:', {
       userId,
       userName,
       studentId,
       roomId,
-      serverUrl
+      serverUrl,
+      profileImageUrl
     });
     
     // 사용자 정보 저장
@@ -89,19 +91,19 @@ class ChatService {
     this.currentUserName = userName;
     this.currentStudentId = studentId;
     
-    // URL에 사용자 정보를 파라미터로 추가
-    const urlWithParams = `${serverUrl}?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(userName)}&studentId=${encodeURIComponent(studentId)}`;
-    
+    // 연결 헤더에 사용자 정보 포함 (선택사항)
     const connectHeaders = {
-      'accept-version': '1.2',
-      'host': __DEV__ ? '70.12.246.239' : 'localhost'
+      'X-User-Id': userId,
+      'X-Student-Id': studentId,
+      'X-User-Name': userName,
+      ...(profileImageUrl && { 'X-Profile-Image': profileImageUrl })
     };
     
-    console.log('🔍 ChatService 연결 URL:', urlWithParams);
+    console.log('🔍 ChatService 연결 URL:', serverUrl);
     console.log('🔍 ChatService 연결 헤더:', connectHeaders);
     
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS(urlWithParams),
+      webSocketFactory: () => new SockJS(serverUrl),
       connectHeaders,
       debug: (str) => console.log('[ChatService]', str),
       reconnectDelay: 5000,
@@ -114,7 +116,7 @@ class ChatService {
       console.log('[ChatService] ✅ STOMP Connected successfully:', frame);
       this.connected = true;
 
-      // 채팅방 구독 with 헤더
+      // 채팅방 구독
       this.stompClient?.subscribe(`/topic/room/${roomId}`, (message) => {
         try {
           const chatMessage = JSON.parse(message.body) as ChatMessageResponse;
@@ -125,14 +127,10 @@ class ChatService {
         } catch (error) {
           console.error('[ChatService] Message parsing error:', error);
         }
-      }, {
-        'X-User-Id': userId,
-        'X-Student-Id': studentId,
-        'X-User-Name': userName
       });
 
       // 에러 큐 구독
-      this.stompClient?.subscribe('/user/queue/errors', (error) => {
+      this.stompClient?.subscribe('/queue/errors', (error) => {
         try {
           const errorMessage = JSON.parse(error.body);
           console.log('[ChatService] Error received:', errorMessage);
@@ -142,8 +140,6 @@ class ChatService {
         } catch (err) {
           console.error('[ChatService] Error parsing error message:', err);
         }
-      }, {
-        'X-User-Id': userId
       });
     };
 
@@ -187,19 +183,12 @@ class ChatService {
     }
 
     try {
-      // 메시지 전송 시 사용자 정보 헤더 포함
-      const messageHeaders = {
-        'X-User-Id': this.currentUserId,
-        'X-Student-Id': this.currentStudentId,
-        'X-User-Name': this.currentUserName
-      };
-      
-      console.log('🔍 메시지 전송 헤더:', messageHeaders);
+      console.log('🔍 메시지 전송:', { roomId, content, messageType });
       
       this.stompClient.publish({
         destination: `/app/chat/${roomId}`,
-        headers: messageHeaders,
         body: JSON.stringify({
+          roomId: roomId,
           content: content,
           messageType: messageType
         })
@@ -235,18 +224,12 @@ class ChatService {
     }
 
     try {
-      const messageHeaders = {
-        'X-User-Id': this.currentUserId,
-        'X-Student-Id': this.currentStudentId,
-        'X-User-Name': this.currentUserName
-      };
-      
-      console.log('🤖 AI 질문 전송 헤더:', messageHeaders);
+      console.log('🤖 AI 질문 전송:', { roomId, question });
       
       this.stompClient.publish({
         destination: `/app/chat/${roomId}`,
-        headers: messageHeaders,
         body: JSON.stringify({
+          roomId: roomId,
           content: question,
           messageType: MessageType.AI_BOT_REQUEST
         })

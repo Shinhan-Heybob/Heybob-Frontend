@@ -1,16 +1,44 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'accessToken',
   REFRESH_TOKEN: 'refreshToken',
   USER_ID: 'userId',
 } as const;
 
 export const storage = {
+  // Access Token 관리
+  async setAccessToken(token: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+    } catch (error) {
+      console.error('Access 토큰 저장 실패:', error);
+    }
+  },
+
+  async getAccessToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    } catch (error) {
+      console.error('Access 토큰 조회 실패:', error);
+      return null;
+    }
+  },
+
+  async removeAccessToken(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    } catch (error) {
+      console.error('Access 토큰 삭제 실패:', error);
+    }
+  },
+
+  // Refresh Token 관리 (기존 메서드 유지 for backward compatibility)
   async setToken(token: string): Promise<void> {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
     } catch (error) {
-      console.error('토큰 저장 실패:', error);
+      console.error('Refresh 토큰 저장 실패:', error);
     }
   },
 
@@ -18,7 +46,7 @@ export const storage = {
     try {
       return await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
     } catch (error) {
-      console.error('토큰 조회 실패:', error);
+      console.error('Refresh 토큰 조회 실패:', error);
       return null;
     }
   },
@@ -27,7 +55,7 @@ export const storage = {
     try {
       await AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     } catch (error) {
-      console.error('토큰 삭제 실패:', error);
+      console.error('Refresh 토큰 삭제 실패:', error);
     }
   },
 
@@ -60,6 +88,7 @@ export const storage = {
   async clearAll(): Promise<void> {
     try {
       await AsyncStorage.multiRemove([
+        STORAGE_KEYS.ACCESS_TOKEN,
         STORAGE_KEYS.REFRESH_TOKEN,
         STORAGE_KEYS.USER_ID,
       ]);

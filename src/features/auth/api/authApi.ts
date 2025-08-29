@@ -8,6 +8,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   userId: number;
+  accessToken: string;
   refreshToken: string;
 }
 
@@ -23,6 +24,7 @@ export interface SignUpRequest {
 
 export interface SignUpResponse {
   userId: number;
+  accessToken: string;
   refreshToken: string;
 }
 

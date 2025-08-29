@@ -55,9 +55,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (response.success && response.data) {
         // 토큰 및 사용자 ID 저장
         console.log('🔍 authStore - 로그인 성공, userId:', response.data.userId);
-        await storage.setToken(response.data.refreshToken);
+        await storage.setAccessToken(response.data.accessToken);  // Access Token 저장
+        await storage.setToken(response.data.refreshToken);       // Refresh Token 저장
         await storage.setUserId(response.data.userId);
-        console.log('🔍 authStore - storage에 userId 저장 완료');
+        console.log('🔍 authStore - storage에 토큰 및 userId 저장 완료');
 
         // 임시 사용자 정보 생성 (추후 profile API로 대체)
         const user: User = {

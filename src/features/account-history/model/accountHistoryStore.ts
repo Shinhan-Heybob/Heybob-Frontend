@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { accountHistoryApi } from '../api/accountHistoryApi';
-import type { DateRange, TransactionHistoryDto, FormattedTransaction, DateSection } from './types';
+import type { DateRange, DateSection, FormattedTransaction, TransactionHistoryDto } from './types';
 
 interface AccountHistoryState {
   // 데이터
@@ -96,9 +96,10 @@ export const useAccountHistoryStore = create<AccountHistoryStore>((set, get) => 
     set({ isLoading: true, error: null });
 
     try {
-      // 개발 중에는 Mock API 사용
+      // 실제 API 호출 테스트
+      // const response = await accountHistoryApi.getAccountHistory(dateRange);
+      // Mock API 호출 (개발용)
       const response = await accountHistoryApi.getMockAccountHistory(dateRange);
-
       if (response.success && response.data) {
         set({ 
           transactions: response.data.transactionHistoryDtoList,

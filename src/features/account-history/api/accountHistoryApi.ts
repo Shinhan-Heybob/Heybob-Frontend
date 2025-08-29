@@ -4,12 +4,24 @@ import type { AccountHistoryRequest, AccountHistoryResponse, TransactionHistoryD
 export const accountHistoryApi = {
   // 실제 API 호출
   getAccountHistory: async (request: AccountHistoryRequest) => {
-    const queryParams = new URLSearchParams({
+    console.log('📅 계좌 내역 요청 데이터:', {
       startDate: request.startDate,
       endDate: request.endDate,
     });
-
-    return apiClient.get<AccountHistoryResponse>(`/account/history?${queryParams}`);
+    
+    console.log('🔍 요청 body JSON:', JSON.stringify({
+      startDate: request.startDate,
+      endDate: request.endDate,
+    }));
+    
+    // POST 요청으로 변경 (body로 날짜 전송)
+    const response = await apiClient.post<AccountHistoryResponse>('/account/personal/history', {
+      startDate: request.startDate,
+      endDate: request.endDate,
+    });
+    
+    console.log('📊 계좌 내역 응답:', response);
+    return response;
   },
 
   // 개발용 Mock API

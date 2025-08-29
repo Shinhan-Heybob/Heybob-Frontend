@@ -85,7 +85,7 @@ export const FindFriendsScreen: React.FC = () => {
 
     // QR 스캔된 친구 데이터 생성
     const scannedFriend: FriendData & { isQRScanned: boolean } = {
-      id: `qr_${data.studentId}`,
+      id: data.studentId, // 실제 studentId 사용 (qr_ prefix 제거)
       name: data.name,
       studentId: data.studentId,
       school: school.name,

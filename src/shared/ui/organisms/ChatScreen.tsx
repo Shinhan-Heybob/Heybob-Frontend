@@ -175,45 +175,27 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
   const handleInfoPress = async () => {
     try {
       if (chatType === 'meal') {
-        // 밥약 정산 정보 조회
-        console.log('밥약 정산 정보 조회 시작:', roomId);
-        const response = await settlementApi.getSettlementPage(roomId);
-        
-        if (response.success && response.data) {
-          // 정산 페이지로 이동 (정산 데이터와 함께)
-          router.push({
-            pathname: '/settlement/[roomId]',
-            params: {
-              roomId: roomId,
-              settlementData: JSON.stringify(response.data)
-            }
-          });
-        } else {
-          Alert.alert('오류', '밥약 정보를 불러올 수 없습니다.');
-        }
+        // 밥약 정산 정보 페이지로 이동
+        router.push({
+          pathname: '/meal-info/[mealId]',
+          params: {
+            mealId: roomId
+          }
+        });
       } else {
-        // 정기 모임 저금 정보 조회
-        console.log('정기 모임 저금 정보 조회 시작:', roomId);
-        const response = await savingsApi.getSavingsPage(roomId);
-        
-        if (response.success && response.data) {
-          // 저금 페이지로 이동 (저금 데이터와 함께)
-          router.push({
-            pathname: '/savings/[roomId]',
-            params: {
-              roomId: roomId,
-              savingsData: JSON.stringify(response.data)
-            }
-          });
-        } else {
-          Alert.alert('오류', '모임 저금 정보를 불러올 수 없습니다.');
-        }
+        // 모임 정보 페이지로 이동
+        router.push({
+          pathname: '/groups/[groupId]/info',
+          params: {
+            groupId: roomId
+          }
+        });
       }
     } catch (error) {
-      console.error('정보 조회 실패:', error);
+      console.error('페이지 이동 실패:', error);
       const errorMessage = chatType === 'meal' 
-        ? '밥약 정보를 불러오는 중 오류가 발생했습니다.' 
-        : '모임 저금 정보를 불러오는 중 오류가 발생했습니다.';
+        ? '밥약 정보 페이지로 이동할 수 없습니다.' 
+        : '모임 정보 페이지로 이동할 수 없습니다.';
       Alert.alert('오류', errorMessage);
     }
   };

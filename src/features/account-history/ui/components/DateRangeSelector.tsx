@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import type { DateRange } from '../../model/types';
+import { getKoreanDate, formatDateToYYYY_MM_DD } from '@/src/shared/utils/dateUtils';
 
 interface DateRangeSelectorProps {
   dateRange: DateRange;
@@ -37,8 +38,8 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
     return `${month}월 ${day}일`;
   };
 
-  // 오늘 날짜 (YYYY-MM-DD 형식)
-  const today = new Date().toISOString().slice(0, 10);
+  // 오늘 날짜 (YYYY-MM-DD 형식) - 한국 시간대 기준
+  const today = formatDateToYYYY_MM_DD(getKoreanDate());
 
   // 날짜 선택 핸들러
   const handleDateSelect = (day: any) => {

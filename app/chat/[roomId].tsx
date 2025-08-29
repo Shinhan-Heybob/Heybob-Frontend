@@ -45,7 +45,7 @@ export default function ChatRoomPage() {
 
       try {
         const endpoint = chatType === 'meal' ? `/meals/${roomId}` : `/meal-appointments/${roomId}`;
-        const response = await apiClient.get(endpoint);
+        const response = await apiClient.get<{name: string; memberCount: number}>(endpoint);
         if (response.success && response.data) {
           setRoomInfo({
             roomId: roomId,

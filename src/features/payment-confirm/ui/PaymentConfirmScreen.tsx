@@ -22,20 +22,22 @@ export const PaymentConfirmScreen: React.FC<PaymentConfirmScreenProps> = ({
     isProcessing,
     error,
     loadMealInfo,
+    setPaymentInfo,
     cancelPayment,
     confirmPayment,
     reset,
     clearError,
   } = usePaymentStore();
 
-  // 컴포넌트 마운트 시 밥약 정보 로드
+  // 컴포넌트 마운트 시 밥약 정보 로드 및 정산 정보 설정
   useEffect(() => {
     loadMealInfo(roomId);
+    setPaymentInfo(roomId, amount);
     
     return () => {
       reset();
     };
-  }, [roomId]);
+  }, [roomId, amount]);
 
   // 에러 처리
   useEffect(() => {
@@ -51,12 +53,9 @@ export const PaymentConfirmScreen: React.FC<PaymentConfirmScreenProps> = ({
     router.back();
   };
 
-  // 취소 버튼
-  const handleCancel = async () => {
-    const success = await cancelPayment(messageId);
-    if (success) {
-      router.back();
-    }
+  // 취소 버튼 (API 호출 없음)
+  const handleCancel = () => {
+    router.back();
   };
 
   // 정산하기 버튼

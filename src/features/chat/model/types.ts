@@ -68,6 +68,7 @@ export interface ChatMessage {
 
 // 메시지 전송 요청 (백엔드로 보내는 데이터)
 export interface SendMessageRequest {
+  roomId: string;
   content?: string;
   messageType: MessageType;
   

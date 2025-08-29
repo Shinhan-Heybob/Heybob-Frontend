@@ -7,9 +7,8 @@ import { apiClient } from '@/src/shared/api/client';
 // 실제 사용자 정보를 사용하되, 없으면 임시 정보 사용
 const TEMP_CURRENT_USER = {
   userId: '1234567',
-  name: '김미림',
+  userName: '김미림',
   studentId: '1234567',
-  department: '컴퓨터공학과',
   profileImageUrl: 'http://profileImage/kim-mirim.jpg',
 };
 
@@ -25,9 +24,8 @@ export default function GroupChatPage() {
   // 실제 사용자 정보 사용 (없으면 임시 정보)
   const currentUser = userInfo ? {
     userId: userInfo.id.toString(),
-    name: userInfo.name,
+    userName: userInfo.name,
     studentId: userInfo.studentId,
-    department: userInfo.department,
     profileImageUrl: userInfo.profileUrl || 'http://profileImage/kim-mirim.jpg',
   } : TEMP_CURRENT_USER;
   
@@ -35,7 +33,7 @@ export default function GroupChatPage() {
   useEffect(() => {
     const fetchGroupInfo = async () => {
       try {
-        const response = await apiClient.get(`/groups/${groupId}`);
+        const response = await apiClient.get<{name: string; memberCount: number}>(`/groups/${groupId}`);
         if (response.success && response.data) {
           setRoomInfo({
             roomId: groupId,

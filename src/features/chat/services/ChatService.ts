@@ -2,6 +2,13 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { chatApiClient } from '../../../shared/api/client';
 
+interface ChatHistoryResponse {
+  messages: ChatMessageResponse[];
+  lastMessageId: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
 export enum MessageType {
   CHAT = 'CHAT',
   JOIN = 'JOIN',
@@ -47,7 +54,7 @@ export interface ChatMessageResponse {
   senderName: string;
   profileImageUrl?: string;
   content: string;
-  messageType: string;
+  messageType: MessageType;
   timestamp: string;
   paymentRequestData?: PaymentRequestData;
   paymentCompleteData?: PaymentCompleteData;
@@ -286,7 +293,7 @@ class ChatService {
     return this.connected;
   }
 
-  async fetchChatHistory(roomId: string, userId: string, limit: number = 50) {
+  async fetchChatHistory(roomId: string, userId: string, limit: number = 50): Promise<ChatHistoryResponse | null> {
     try {
       console.log('🔍 채팅 히스토리 요청:', {
         roomId,
@@ -296,7 +303,7 @@ class ChatService {
         baseUrl: process.env.EXPO_PUBLIC_CHAT_API_URL
       });
 
-      const response = await chatApiClient.get(`/chat/rooms/${roomId}/messages?limit=${limit}`, {
+      const response = await chatApiClient.get<ChatHistoryResponse>(`/chat/rooms/${roomId}/messages?limit=${limit}`, {
         headers: {
           'X-User-Id': userId
         }
@@ -308,14 +315,16 @@ class ChatService {
         throw new Error(response.error || 'Failed to fetch chat history');
       }
 
-      return response.data;
+      return response.data || null;
     } catch (error) {
       console.error('[ChatService] Error fetching chat history:', error);
-      console.error('[ChatService] Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
+      if (error instanceof Error) {
+        console.error('[ChatService] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
       throw error;
     }
   }
@@ -325,9 +334,9 @@ class ChatService {
     userId: string, 
     beforeMessageId: string, 
     limit: number = 50
-  ) {
+  ): Promise<ChatHistoryResponse | null> {
     try {
-      const response = await chatApiClient.get(
+      const response = await chatApiClient.get<ChatHistoryResponse>(
         `/chat/rooms/${roomId}/messages?before=${beforeMessageId}&limit=${limit}`,
         {
           headers: {
@@ -340,7 +349,7 @@ class ChatService {
         throw new Error(response.error || 'Failed to fetch chat history before');
       }
 
-      return response.data;
+      return response.data || null;
     } catch (error) {
       console.error('[ChatService] Error fetching chat history before:', error);
       throw error;

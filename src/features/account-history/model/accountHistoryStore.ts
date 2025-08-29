@@ -97,9 +97,9 @@ export const useAccountHistoryStore = create<AccountHistoryStore>((set, get) => 
 
     try {
       // 실제 API 호출 테스트
-      // const response = await accountHistoryApi.getAccountHistory(dateRange);
+      const response = await accountHistoryApi.getAccountHistory(dateRange);
       // Mock API 호출 (개발용)
-      const response = await accountHistoryApi.getMockAccountHistory(dateRange);
+      // const response = await accountHistoryApi.getMockAccountHistory(dateRange);
       if (response.success && response.data) {
         set({ 
           transactions: response.data.transactionHistoryDtoList,

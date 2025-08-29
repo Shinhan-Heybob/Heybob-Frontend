@@ -300,7 +300,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   // 현재 채팅방 설정  
   setCurrentRoom: (room: ChatRoom) => {
-    set({ currentRoom: room });
+    const { currentRoom } = get();
+    
+    // 다른 채팅방으로 전환하는 경우 메시지 초기화
+    if (currentRoom && currentRoom.roomId !== room.roomId) {
+      console.log(`[ChatStore] 🔄 채팅방 전환: ${currentRoom.roomId} → ${room.roomId}, 메시지 초기화`);
+      set({ 
+        currentRoom: room, 
+        messages: [],
+        hasMoreMessages: true 
+      });
+    } else {
+      console.log(`[ChatStore] 📝 채팅방 정보 설정: ${room.roomId}`);
+      set({ currentRoom: room });
+    }
   },
 
   // WebSocket 연결
@@ -476,9 +489,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
   // 메시지 추가 (실시간 수신)
   addMessage: (message: ChatMessage) => {
     set((state) => {
+      // 현재 채팅방과 메시지의 roomId가 일치하는지 확인
+      if (!state.currentRoom || state.currentRoom.roomId !== message.roomId) {
+        console.log(`[ChatStore] ⚠️ 다른 채팅방 메시지 무시:`, {
+          현재채팅방: state.currentRoom?.roomId,
+          메시지채팅방: message.roomId,
+          메시지내용: message.content,
+          발신자: message.senderName
+        });
+        return state;
+      }
+
       // 중복 메시지 방지
       const exists = state.messages.some(msg => msg.messageId === message.messageId);
-      if (exists) return state;
+      if (exists) {
+        console.log(`[ChatStore] 🔍 중복 메시지 무시: ${message.messageId}`);
+        return state;
+      }
+
+      console.log(`[ChatStore] ✅ 메시지 추가:`, {
+        채팅방: message.roomId,
+        내용: message.content,
+        발신자: message.senderName,
+        메시지ID: message.messageId
+      });
 
       // 시간순 정렬로 삽입
       const newMessages = [...state.messages, message].sort(
@@ -524,7 +558,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       // 기존 메시지에 추가 (중복 제거)
       set((state) => {
         const existingIds = new Set(state.messages.map(msg => msg.messageId));
-        const newMessages = Array.isArray(messages) ? messages.filter((msg: ChatMessage) => !existingIds.has(msg.messageId)) : [];
+        const newMessages = Array.isArray(messages) ? messages.filter((msg: any) => !existingIds.has(msg.messageId)) : [];
         const allMessages = [...newMessages, ...state.messages].sort(
           (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );

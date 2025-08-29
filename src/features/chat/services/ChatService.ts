@@ -2,6 +2,13 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { chatApiClient } from '../../../shared/api/client';
 
+interface ChatHistoryResponse {
+  messages: ChatMessageResponse[];
+  lastMessageId: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
 export enum MessageType {
   CHAT = 'CHAT',
   JOIN = 'JOIN',
@@ -63,6 +70,10 @@ class ChatService {
   private currentUserId: string = '';
   private currentUserName: string = '';
   private currentStudentId: string = '';
+  
+  // 현재 구독 정보 저장
+  private currentRoomId: string = '';
+  private currentSubscriptions: any[] = [];
 
   constructor() {
     this.stompClient = null;
@@ -77,6 +88,25 @@ class ChatService {
     serverUrl?: string,
     profileImageUrl: string = ''
   ) {
+    // 이미 연결되어 있고 같은 채팅방이면 무시
+    if (this.connected && this.currentRoomId === roomId) {
+      console.log(`[ChatService] ⚠️ 이미 채팅방(${roomId})에 연결되어 있습니다.`);
+      return;
+    }
+    
+    // 다른 채팅방에 연결되어 있으면 먼저 해제
+    if (this.connected && this.currentRoomId !== roomId) {
+      console.log(`[ChatService] 🔄 채팅방 전환: ${this.currentRoomId} → ${roomId}`);
+      this.disconnect();
+      // 상태 초기화 후 바로 새 연결 진행 (재귀 호출 제거)
+    }
+    
+    // STOMP 클라이언트가 남아있으면 정리
+    if (this.stompClient && !this.connected) {
+      console.log(`[ChatService] 🧹 기존 STOMP 클라이언트 정리`);
+      this.stompClient = null;
+    }
+    
     // 환경변수에서 WebSocket URL 구성
     const websocketBaseUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'http://172.18.135.1:8081';
     const finalServerUrl = serverUrl || `${websocketBaseUrl}/ws`;
@@ -93,10 +123,11 @@ class ChatService {
       host
     });
     
-    // 사용자 정보 저장
+    // 사용자 정보 및 현재 roomId 저장
     this.currentUserId = userId;
     this.currentUserName = userName;
     this.currentStudentId = studentId;
+    this.currentRoomId = roomId;
     
     // STOMP 표준 연결 헤더
     const connectHeaders = {
@@ -130,22 +161,42 @@ class ChatService {
     this.stompClient.onConnect = (frame) => {
       console.log('[ChatService] ✅ STOMP Connected successfully:', frame);
       this.connected = true;
-
-      // 채팅방 구독
-      this.stompClient?.subscribe(`/topic/room/${roomId}`, (message) => {
+      
+      // 채팅방 구독 (새 연결이므로 구독 해제 불필요)
+      const subscriptionPath = `/topic/room/${roomId}`;
+      console.log(`[ChatService] 🔔 채팅방 구독 시작 - roomId: ${roomId}, path: ${subscriptionPath}`);
+      
+      const roomSubscription = this.stompClient?.subscribe(subscriptionPath, (message) => {
         try {
           const chatMessage = JSON.parse(message.body) as ChatMessageResponse;
-          console.log('[ChatService] Message received:', chatMessage);
-          if (this.onMessageReceived) {
+          console.log(`[ChatService] 📨 RAW 메시지 수신:`, {
+            구독경로: subscriptionPath,
+            현재연결룸: this.currentRoomId,
+            메시지룸: chatMessage.roomId,
+            발신자: chatMessage.senderName,
+            내용: chatMessage.content,
+            타입: chatMessage.messageType,
+            일치여부: chatMessage.roomId === this.currentRoomId
+          });
+          
+          // 현재 roomId와 메시지의 roomId가 일치하는 경우에만 처리
+          if (chatMessage.roomId === this.currentRoomId && this.onMessageReceived) {
+            console.log(`[ChatService] ✅ 메시지 처리 - roomId: ${this.currentRoomId}`);
             this.onMessageReceived(chatMessage);
+          } else {
+            console.log(`[ChatService] ⚠️ 다른 채팅방 메시지 무시 - 현재: ${this.currentRoomId}, 받은 메시지: ${chatMessage.roomId}`);
           }
         } catch (error) {
           console.error('[ChatService] Message parsing error:', error);
         }
       });
+      
+      if (roomSubscription) {
+        this.currentSubscriptions.push(roomSubscription);
+      }
 
       // 에러 큐 구독
-      this.stompClient?.subscribe('/queue/errors', (error) => {
+      const errorSubscription = this.stompClient?.subscribe('/queue/errors', (error) => {
         try {
           const errorMessage = JSON.parse(error.body);
           console.log('[ChatService] Error received:', errorMessage);
@@ -156,6 +207,10 @@ class ChatService {
           console.error('[ChatService] Error parsing error message:', err);
         }
       });
+      
+      if (errorSubscription) {
+        this.currentSubscriptions.push(errorSubscription);
+      }
     };
 
     this.stompClient.onStompError = (frame) => {
@@ -191,8 +246,29 @@ class ChatService {
       return false;
     }
 
+    // 현재 연결된 채팅방과 일치하는지 확인
+    if (this.currentRoomId !== roomId) {
+      console.error(`[ChatService] ⚠️ 메시지 전송 거부 - 현재 채팅방: ${this.currentRoomId}, 요청 채팅방: ${roomId}`);
+      return false;
+    }
+
     try {
-      console.log('🔍 메시지 전송:', { roomId, content, messageType });
+      const destination = `/app/chat/${roomId}`;
+      const messageBody = {
+        roomId: roomId,
+        content: content,
+        messageType: messageType
+      };
+      
+      console.log('🔍 메시지 전송 상세:', {
+        현재연결룸: this.currentRoomId, 
+        전송대상룸: roomId, 
+        전송경로: destination,
+        메시지내용: content, 
+        메시지타입: messageType,
+        발신자: this.currentUserName,
+        메시지바디: messageBody
+      });
       
       // 사용자 정보 헤더 구성
       const headers: { [key: string]: string } = {
@@ -202,14 +278,11 @@ class ChatService {
       };
 
       this.stompClient.publish({
-        destination: `/app/chat/${roomId}`,
+        destination: destination,
         headers: headers,
-        body: JSON.stringify({
-          roomId: roomId,
-          content: content,
-          messageType: messageType
-        })
+        body: JSON.stringify(messageBody)
       });
+      console.log(`[ChatService] ✅ 메시지 전송 완료 - destination: ${destination}`);
       return true;
     } catch (error) {
       console.error('[ChatService] Error sending message:', error);
@@ -223,7 +296,14 @@ class ChatService {
       return false;
     }
 
+    // 현재 연결된 채팅방과 일치하는지 확인
+    if (this.currentRoomId !== roomId) {
+      console.error(`[ChatService] ⚠️ 카페테리아 정보 요청 거부 - 현재 채팅방: ${this.currentRoomId}, 요청 채팅방: ${roomId}`);
+      return false;
+    }
+
     try {
+      console.log(`[ChatService] 🍽️ 카페테리아 정보 요청 - ${roomId}`);
       this.stompClient.publish({
         destination: `/app/chat/${roomId}/cafeteria`
       });
@@ -240,8 +320,18 @@ class ChatService {
       return false;
     }
 
+    // 현재 연결된 채팅방과 일치하는지 확인
+    if (this.currentRoomId !== roomId) {
+      console.error(`[ChatService] ⚠️ AI 질문 전송 거부 - 현재 채팅방: ${this.currentRoomId}, 요청 채팅방: ${roomId}`);
+      return false;
+    }
+
     try {
-      console.log('🤖 AI 질문 전송:', { roomId, question });
+      console.log('🤖 AI 질문 전송:', { 
+        currentRoom: this.currentRoomId,
+        targetRoom: roomId, 
+        question 
+      });
       
       // 사용자 정보 헤더 구성
       const headers: { [key: string]: string } = {
@@ -259,6 +349,7 @@ class ChatService {
           messageType: MessageType.AI_BOT_REQUEST
         })
       });
+      console.log(`[ChatService] ✅ AI 질문 전송 완료 - ${roomId}`);
       return true;
     } catch (error) {
       console.error('[ChatService] Error sending AI question:', error);
@@ -266,12 +357,64 @@ class ChatService {
     }
   }
 
-  disconnect() {
-    if (this.stompClient) {
-      console.log('[ChatService] Disconnecting from chat server');
-      this.stompClient.deactivate();
-      this.connected = false;
+  // 모든 구독 해제
+  private unsubscribeAll() {
+    if (this.currentSubscriptions.length > 0) {
+      console.log(`[ChatService] 🔌 구독 해제 시작:`, {
+        구독개수: this.currentSubscriptions.length,
+        현재룸: this.currentRoomId,
+        구독목록: this.currentSubscriptions.map((sub, index) => `구독${index + 1}`)
+      });
+      
+      this.currentSubscriptions.forEach((subscription, index) => {
+        if (subscription && subscription.unsubscribe) {
+          try {
+            subscription.unsubscribe();
+            console.log(`[ChatService] ✅ 구독${index + 1} 해제 완료`);
+          } catch (error) {
+            console.error(`[ChatService] ❌ 구독${index + 1} 해제 실패:`, error);
+          }
+        }
+      });
+      this.currentSubscriptions = [];
+      console.log(`[ChatService] ✅ 모든 구독 해제 완료`);
+    } else {
+      console.log(`[ChatService] 🔍 해제할 구독 없음`);
     }
+  }
+
+
+  disconnect() {
+    if (!this.connected && !this.stompClient) {
+      console.log('[ChatService] 🔍 이미 연결 해제 상태');
+      return;
+    }
+
+    console.log('[ChatService] 🔌 연결 해제 시작');
+    
+    // 구독 해제
+    this.unsubscribeAll();
+    
+    // STOMP 클라이언트 비활성화
+    if (this.stompClient) {
+      try {
+        if (this.stompClient.active) {
+          this.stompClient.deactivate();
+          console.log('[ChatService] ✅ STOMP 클라이언트 비활성화 완료');
+        } else {
+          console.log('[ChatService] 🔍 STOMP 클라이언트 이미 비활성화됨');
+        }
+      } catch (error) {
+        console.error('[ChatService] STOMP 클라이언트 비활성화 오류:', error);
+      }
+      this.stompClient = null;
+    }
+    
+    // 상태 초기화 (콜백은 유지)
+    this.connected = false;
+    this.currentRoomId = '';
+    
+    console.log('[ChatService] ✅ 연결 해제 완료');
   }
 
   setOnMessageReceived(callback: (message: ChatMessageResponse) => void) {
@@ -286,7 +429,7 @@ class ChatService {
     return this.connected;
   }
 
-  async fetchChatHistory(roomId: string, userId: string, limit: number = 50) {
+  async fetchChatHistory(roomId: string, userId: string, limit: number = 50): Promise<ChatHistoryResponse | null> {
     try {
       console.log('🔍 채팅 히스토리 요청:', {
         roomId,
@@ -296,26 +439,28 @@ class ChatService {
         baseUrl: process.env.EXPO_PUBLIC_CHAT_API_URL
       });
 
-      const response = await chatApiClient.get(`/chat/rooms/${roomId}/messages?limit=${limit}`, {
+      const response = await chatApiClient.get<ChatHistoryResponse>(`/chat/rooms/${roomId}/messages?limit=${limit}`, {
         headers: {
           'X-User-Id': userId
         }
       });
 
-      console.log('🔍 채팅 히스토리 응답:', response);
+      console.log(`🔍 채팅 히스토리 응답 - roomId: ${roomId}, 메시지 개수: ${response.data?.messages?.length || 0}`);
 
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch chat history');
       }
 
-      return response.data;
+      return response.data || null;
     } catch (error) {
       console.error('[ChatService] Error fetching chat history:', error);
-      console.error('[ChatService] Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
+      if (error instanceof Error) {
+        console.error('[ChatService] Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
       throw error;
     }
   }
@@ -325,9 +470,9 @@ class ChatService {
     userId: string, 
     beforeMessageId: string, 
     limit: number = 50
-  ) {
+  ): Promise<ChatHistoryResponse | null> {
     try {
-      const response = await chatApiClient.get(
+      const response = await chatApiClient.get<ChatHistoryResponse>(
         `/chat/rooms/${roomId}/messages?before=${beforeMessageId}&limit=${limit}`,
         {
           headers: {
@@ -340,7 +485,7 @@ class ChatService {
         throw new Error(response.error || 'Failed to fetch chat history before');
       }
 
-      return response.data;
+      return response.data || null;
     } catch (error) {
       console.error('[ChatService] Error fetching chat history before:', error);
       throw error;

@@ -9,7 +9,6 @@ const TEMP_CURRENT_USER = {
   userId: '1234567',
   name: '김미림',
   studentId: '1234567',
-  department: '컴퓨터공학과',
   profileImageUrl: 'http://profileImage/kim-mirim.jpg',
 };
 
@@ -25,17 +24,21 @@ export default function GroupChatPage() {
   // 실제 사용자 정보 사용 (없으면 임시 정보)
   const currentUser = userInfo ? {
     userId: userInfo.id.toString(),
-    name: userInfo.name,
+    userName: userInfo.name,
     studentId: userInfo.studentId,
-    department: userInfo.department,
     profileImageUrl: userInfo.profileUrl || 'http://profileImage/kim-mirim.jpg',
-  } : TEMP_CURRENT_USER;
+  } : {
+    userId: TEMP_CURRENT_USER.userId,
+    userName: TEMP_CURRENT_USER.name,
+    studentId: TEMP_CURRENT_USER.studentId,
+    profileImageUrl: TEMP_CURRENT_USER.profileImageUrl,
+  };
   
   // 그룹 정보 가져오기
   useEffect(() => {
     const fetchGroupInfo = async () => {
       try {
-        const response = await apiClient.get(`/groups/${groupId}`);
+        const response = await apiClient.get<{name: string; memberCount: number}>(`/groups/${groupId}`);
         if (response.success && response.data) {
           setRoomInfo({
             roomId: groupId,

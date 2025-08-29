@@ -89,19 +89,23 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
     // 채팅 히스토리 로드
     loadMessages(roomId);
 
-    // WebSocket 연결
-    console.log('🔍 ChatScreen에서 connect 호출:', {
-      currentUser,
-      roomId,
-      hasCurrentUser: !!currentUser
-    });
-    connect(currentUser, roomId);
+    // WebSocket 연결 (사용자 정보가 있을 때만)
+    if (currentUser && currentUser.userId) {
+      console.log('🔍 ChatScreen에서 connect 호출:', {
+        currentUser,
+        roomId,
+        hasCurrentUser: !!currentUser
+      });
+      connect(currentUser, roomId);
+    } else {
+      console.warn('🔍 사용자 정보가 없어 연결을 건너뜁니다:', currentUser);
+    }
 
     // cleanup
     return () => {
       disconnect();
     };
-  }, [roomId, currentUser, roomInfo, chatType]);
+  }, [roomId, chatType]);
 
   // 에러 처리
   useEffect(() => {

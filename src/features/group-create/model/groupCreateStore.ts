@@ -44,6 +44,9 @@ interface GroupCreateState {
   // 적금 정보
   savingsInfo: SavingsInfo | null;
   
+  // 생성된 모임 ID (API 응답)
+  createdMeetingId: number | null;
+  
   // 에러 상태
   error: string | null;
 }
@@ -66,6 +69,9 @@ interface GroupCreateActions {
   // 1인당 금액 설정 (총 금액 자동 계산)
   setAmountPerPerson: (amount: number) => void;
   
+  // 생성된 모임 ID 설정
+  setCreatedMeetingId: (id: number) => void;
+  
   // 초기화
   resetGroupCreate: () => void;
   
@@ -81,6 +87,7 @@ export const useGroupCreateStore = create<GroupCreateStore>((set, get) => ({
   selectedFriends: [],
   basicInfo: null,
   savingsInfo: null,
+  createdMeetingId: null,
   error: null,
 
   // 날짜 선택
@@ -206,6 +213,11 @@ export const useGroupCreateStore = create<GroupCreateStore>((set, get) => ({
     set({ savingsInfo: newSavingsInfo });
   },
 
+  // 생성된 모임 ID 설정
+  setCreatedMeetingId: (id: number) => {
+    set({ createdMeetingId: id });
+  },
+
   // 전체 초기화
   resetGroupCreate: () => {
     set({
@@ -213,6 +225,7 @@ export const useGroupCreateStore = create<GroupCreateStore>((set, get) => ({
       selectedFriends: [],
       basicInfo: null,
       savingsInfo: null,
+      createdMeetingId: null,
       error: null,
     });
   },

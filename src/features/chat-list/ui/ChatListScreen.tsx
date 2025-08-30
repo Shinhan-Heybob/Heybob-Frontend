@@ -1,5 +1,6 @@
 import { MealInfoCard } from '@/src/shared/ui/atoms/MealInfoCard';
 import { useUserStore } from '@/src/entities/user/model/userStore';
+import { useAuthStore } from '@/src/features/auth/model/authStore';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -11,6 +12,7 @@ import { ChatListHeader } from './components/ChatListHeader';
 
 export const ChatListScreen: React.FC = () => {
   const { userInfo, fetchUserInfo } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   const insets = useSafeAreaInsets();
   const {
     chatList,
@@ -27,6 +29,12 @@ export const ChatListScreen: React.FC = () => {
   // 컴포넌트 마운트 시 초기화
   useEffect(() => {
     const initializeData = async () => {
+      // 인증된 사용자만 데이터 로드
+      if (!isAuthenticated) {
+        console.log('🔍 ChatListScreen - 인증되지 않은 상태, API 호출 안함');
+        return;
+      }
+
       // 사용자 정보가 없으면 먼저 로드
       if (!userInfo) {
         await fetchUserInfo();
@@ -34,21 +42,23 @@ export const ChatListScreen: React.FC = () => {
       
       // 사용자 정보가 있으면 채팅 목록 로드
       if (userInfo?.id) {
+        console.log('🔍 ChatListScreen - 채팅 목록 로드 시작');
         setCurrentUserId(userInfo.id);
         loadChatList();
       }
     };
 
     initializeData();
-  }, [userInfo?.id, fetchUserInfo]);
+  }, [isAuthenticated, userInfo?.id, fetchUserInfo]);
 
-  // 사용자 정보 변경 시 채팅 목록 다시 로드
+  // 사용자 정보 변경 시 채팅 목록 다시 로드 (인증된 상태에서만)
   useEffect(() => {
-    if (userInfo?.id) {
+    if (isAuthenticated && userInfo?.id) {
+      console.log('🔍 ChatListScreen - 사용자 정보 변경, 채팅 목록 재로드');
       setCurrentUserId(userInfo.id);
       loadChatList();
     }
-  }, [userInfo?.id]);
+  }, [isAuthenticated, userInfo?.id]);
 
   // 에러 처리
   useEffect(() => {

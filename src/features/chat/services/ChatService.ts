@@ -108,7 +108,7 @@ class ChatService {
     }
     
     // 환경변수에서 WebSocket URL 구성
-    const websocketBaseUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'http://172.18.135.1:8081';
+    const websocketBaseUrl = process.env.EXPO_PUBLIC_WEBSOCKET_URL || 'http://43.203.55.49:8081';
     const finalServerUrl = serverUrl || `${websocketBaseUrl}/ws`;
     const host = websocketBaseUrl.replace('http://', '').replace('https://', '').replace('ws://', '').replace('wss://', '').split(':')[0];
     

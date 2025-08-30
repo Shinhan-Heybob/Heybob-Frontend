@@ -22,25 +22,33 @@ export class TimetableApi {
     try {
       console.log('🌐 시간표 생성 API 요청:', data);
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      // const result = await response.json();
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockResponse: TimetableResponse = {
-        id: Date.now(),
-        timeTableName: data.timeTableName,
-        lectures: []
-      };
-      
-      console.log('✅ 시간표 생성 성공:', mockResponse);
-      return { success: true, data: mockResponse };
+      const token = await storage.getAccessToken();
+                if (!token) {
+                  return {
+                    success: false,
+                    error: '로그인이 필요합니다.',
+                  };
+                }
+
+                console.log('🌐 강의 생성 API 요청:', { timeTableId, data });
+
+                const response = await fetch(`${API_BASE_URL}/timetable/lecture/${timeTableId}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,  // 토큰 헤더 포함
+                  },
+                  body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  return {
+                    success: false,
+                    apiError: errorData,
+                    error: errorData.message || '강의 생성에 실패했습니다.',
+                  };
+                }
       
     } catch (error) {
       console.error('❌ 시간표 생성 실패:', error);

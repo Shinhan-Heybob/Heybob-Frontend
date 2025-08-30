@@ -30,7 +30,7 @@ interface TimetableActions {
   
   // 강의 관련
   createLecture: (timeTableId: number, data: LectureCreateRequest) => Promise<boolean>;
-  updateLecture: (lectureId: number, data: LectureUpdateRequest) => Promise<boolean>;
+  updateLecture: (timetableId: number, lectureId: number, data: LectureUpdateRequest) => Promise<boolean>;
   deleteLecture: (lectureId: number) => Promise<boolean>;
   
   // 강의 상세
@@ -147,11 +147,11 @@ export const useTimetableStore = create<TimetableStore>((set, get) => ({
   },
 
   // 강의 수정
-  updateLecture: async (lectureId: number, data: LectureUpdateRequest) => {
+  updateLecture: async (timetableId: number, lectureId: number, data: LectureUpdateRequest) => {
     set({ isUpdatingLecture: true, error: null });
     
     try {
-      const response = await TimetableApi.updateLecture(lectureId, data);
+      const response = await TimetableApi.updateLecture(timetableId, lectureId, data);
       
       if (response.success) {
         // 현재 시간표가 있다면 다시 불러와 최신 정보 반영

@@ -11,6 +11,7 @@ import {
 import { CameraView, Camera } from 'expo-camera';
 
 interface QRFriendData {
+  userId: string;
   name: string;
   studentId: string;
   schoolId: string;
@@ -50,9 +51,10 @@ export const QRScanModal: React.FC<QRScanModalProps> = ({
     try {
       const parsedData = JSON.parse(data);
       
-      // QR 데이터 검증 (QR 생성 형식: studentId, name, schoolId, departmentId, issueTime)
-      if (parsedData.name && parsedData.studentId && parsedData.schoolId && parsedData.departmentId) {
+      // QR 데이터 검증 (QR 생성 형식: userId, studentId, name, schoolId, departmentId, issueTime)
+      if (parsedData.userId && parsedData.name && parsedData.studentId && parsedData.schoolId && parsedData.departmentId) {
         onScanSuccess({
+          userId: parsedData.userId,
           name: parsedData.name,
           studentId: parsedData.studentId,
           schoolId: parsedData.schoolId,

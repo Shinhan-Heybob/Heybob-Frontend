@@ -10,6 +10,7 @@ import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 interface StudentQRData {
+  userId: string;
   studentId: string;
   name: string;
   schoolId: string;
@@ -72,6 +73,7 @@ const generateQRData = (user: User, displayUser?: User | UserInfo): string => {
   }
   
   const qrData: StudentQRData = {
+    userId: (displayUser?.id || user.id).toString(),
     studentId: displayUser?.studentId || user.studentId,
     name: actualName,
     schoolId: actualSchoolId,

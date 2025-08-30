@@ -4,12 +4,15 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface Participant {
-  userId: string;
-  name: string;
+  userId: number;
+  userName: string;
   department: string;
   studentId: string;
   avatarId: string;
-  isSettled: boolean;
+  isPaid: boolean;
+  isHost: boolean;
+  amount: number;
+  status: string;
 }
 
 interface SettlementStatusListProps {
@@ -50,11 +53,21 @@ export const SettlementStatusList: React.FC<SettlementStatusListProps> = ({
               <Text style={styles.participantDept}>
                 {participant.department} ({participant.studentId})
               </Text>
-              <Text style={styles.participantName}>{participant.name}</Text>
+              <View style={styles.nameContainer}>
+                <Text style={styles.participantName}>{participant.userName}</Text>
+                {participant.isHost && (
+                  <View style={styles.hostBadge}>
+                    <Text style={styles.hostBadgeText}>방장</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.amountText}>
+                {participant.amount.toLocaleString()}원
+              </Text>
             </View>
             
             {/* 정산 완료 아이콘 */}
-            {participant.isSettled && (
+            {participant.isPaid ? (
               <View style={styles.statusContainer}>
                 <Image
                   source={require('@/assets/images/icons/confirm-button.png')}
@@ -62,6 +75,13 @@ export const SettlementStatusList: React.FC<SettlementStatusListProps> = ({
                   contentFit="contain"
                 />
                 <Text style={styles.statusText}>정산 완료</Text>
+              </View>
+            ) : (
+              <View style={styles.statusContainer}>
+                <View style={styles.pendingIcon}>
+                  <Text style={styles.pendingIconText}>...</Text>
+                </View>
+                <Text style={styles.pendingText}>대기중</Text>
               </View>
             )}
           </View>
@@ -103,10 +123,32 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginBottom: 2,
   },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   participantName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+  },
+  hostBadge: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  hostBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  amountText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#4B5563',
   },
   statusContainer: {
     alignItems: 'center',
@@ -121,6 +163,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#10B981',
+  },
+  pendingIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  pendingIconText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontWeight: '600',
+  },
+  pendingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
   },
   loadingContainer: {
     padding: 20,

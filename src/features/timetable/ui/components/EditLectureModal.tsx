@@ -9,14 +9,15 @@ interface EditLectureModalProps {
   visible: boolean;
   lecture: Lecture | null;
   onClose: () => void;
-  onSubmit: (lectureId: number, data: LectureUpdateRequest) => void;
+  onSubmit: (timetableId:number, lectureId: number, data: LectureUpdateRequest) => void;
 }
 
-export const EditLectureModal: React.FC<EditLectureModalProps> = ({
+export const EditLectureModal: React.FC<EditLectureModalProps & {timetableId: number}> = ({
   visible,
   lecture,
   onClose,
   onSubmit,
+  timetableId
 }) => {
   const { currentTimetable } = useTimetableStore();
   
@@ -62,7 +63,7 @@ export const EditLectureModal: React.FC<EditLectureModalProps> = ({
     if (!lecture) return;
     
     if (validateForm()) {
-      onSubmit(lecture.lectureId, formData);
+      onSubmit(timetableId, lecture.lectureId, formData);
       handleReset();
     }
   };

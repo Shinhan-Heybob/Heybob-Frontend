@@ -67,8 +67,8 @@ export const TimetableDetailScreen: React.FC = () => {
     }
   };
 
-  const handleEditLecture = async (lectureId: number, data: LectureUpdateRequest) => {
-    const success = await updateLecture(lectureId, data);
+  const handleEditLecture = async (timetableId: number, lectureId: number, data: LectureUpdateRequest) => {
+    const success = await updateLecture(timetableId, lectureId, data);
     if (success) {
       setShowEditLectureModal(false);
       setEditingLecture(null);
@@ -163,6 +163,7 @@ export const TimetableDetailScreen: React.FC = () => {
           setShowEditLectureModal(false);
           setEditingLecture(null);
         }}
+        timetableId={timetableId}
         onSubmit={handleEditLecture}
       />
 

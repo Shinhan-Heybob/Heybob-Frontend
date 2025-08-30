@@ -20,7 +20,7 @@ export const paymentApi = {
   ): Promise<{ success: boolean; data?: PaymentParticipateResponse; error?: string }> => {
     try {
       const response = await apiClient.post<PaymentParticipateResponse>(
-        `/api/settle/${chatRoomId}/pay`,
+        `/settle/${chatRoomId}/pay`,
         request
       );
       

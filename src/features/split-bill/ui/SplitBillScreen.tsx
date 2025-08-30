@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSplitBillStore } from '../model/splitBillStore';
 import { settlementApi } from '../api/settlementApi';
+import { mealInfoApi } from '@/src/features/meal-info/api/mealInfoApi';
 import { AmountInput } from './components/AmountInput';
 import { CalculatedAmount } from './components/CalculatedAmount';
 import { FriendSelector } from './components/FriendSelector';
@@ -14,6 +15,8 @@ interface SplitBillScreenProps {
 export const SplitBillScreen: React.FC<SplitBillScreenProps> = ({ roomId }) => {
   const [calculatedAmount, setCalculatedAmount] = useState<number | null>(null);
   const [showCalculatedAmount, setShowCalculatedAmount] = useState(false);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [isLoadingParticipants, setIsLoadingParticipants] = useState(true);
   
   const {
     selectedFriendIds,
@@ -25,6 +28,36 @@ export const SplitBillScreen: React.FC<SplitBillScreenProps> = ({ roomId }) => {
     reset,
     clearError,
   } = useSplitBillStore();
+
+  // 참여자 정보 로드
+  useEffect(() => {
+    const loadParticipants = async () => {
+      try {
+        setIsLoadingParticipants(true);
+        const result = await mealInfoApi.getMealAppointmentInfo(roomId);
+        
+        if (result.success && result.data) {
+          // 참여자 목록을 FriendSelector에서 사용할 수 있는 형태로 변환
+          const participantsList = result.data.participants.map((participant, index) => ({
+            id: participant.studentId || index.toString(),
+            name: participant.name,
+            studentId: participant.studentId,
+            department: participant.department,
+            avatarId: participant.profileUrl || 'avatar_01'
+          }));
+          
+          setParticipants(participantsList);
+        }
+      } catch (error) {
+        console.error('참여자 정보 로드 실패:', error);
+        Alert.alert('오류', '참여자 정보를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoadingParticipants(false);
+      }
+    };
+
+    loadParticipants();
+  }, [roomId]);
 
   // 에러 처리
   useEffect(() => {
@@ -148,6 +181,8 @@ export const SplitBillScreen: React.FC<SplitBillScreenProps> = ({ roomId }) => {
           <FriendSelector
             selectedFriendIds={selectedFriendIds}
             onToggleFriend={toggleFriend}
+            participants={participants}
+            isLoading={isLoadingParticipants}
           />
         </View>
       </ScrollView>

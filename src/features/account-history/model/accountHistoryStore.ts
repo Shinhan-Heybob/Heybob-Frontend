@@ -56,8 +56,9 @@ const getDefaultDateRange = (): DateRange => {
 };
 
 // 거래 유형이 입금인지 확인하는 헬퍼 함수
-const isDepositTransaction = (typeName: string): boolean => {
-  return typeName.includes('입금');
+// transactionTypeName 또는 transactorName 둘 중 하나에 '입금'이 포함되면 입금으로 처리
+const isDepositTransaction = (typeName: string, transactorName?: string): boolean => {
+  return typeName.includes('입금') || (transactorName ? transactorName.includes('입금') : false);
 };
 
 // 금액 포맷팅 (천 단위 콤마)
@@ -139,8 +140,8 @@ export const useAccountHistoryStore = create<AccountHistoryStore>((set, get) => 
     
     return transactions.map(transaction => ({
       ...transaction,
-      isDeposit: isDepositTransaction(transaction.transactionTypeName),
-      formattedAmount: (isDepositTransaction(transaction.transactionTypeName) ? '+' : '-') 
+      isDeposit: isDepositTransaction(transaction.transactionTypeName, transaction.transactorName),
+      formattedAmount: (isDepositTransaction(transaction.transactionTypeName, transaction.transactorName) ? '+' : '-') 
                       + formatAmount(transaction.transactionBalance),
       formattedDate: formatDate(transaction.transactionDate),
       formattedTime: formatTime(transaction.transactionTime),

@@ -226,22 +226,34 @@ export class TimetableApi {
     try {
       console.log('🌐 강의 삭제 API 요청:', lectureId);
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
-      //   method: 'DELETE'
-      // });
-      
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   return { 
-      //     success: false, 
-      //     apiError: errorData,
-      //     error: errorData.message || '강의 삭제에 실패했습니다.' 
-      //   };
-      // }
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const token = await storage.getAccessToken();
+          if (!token) {
+            return {
+              success: false,
+              error: '로그인이 필요합니다.',
+            };
+          }
+
+          console.log('🌐 강의 삭제 API 요청:', lectureId);
+
+          const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,  // 토큰 헤더 포함
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            return {
+              success: false,
+              apiError: errorData,
+              error: errorData.message || '강의 삭제에 실패했습니다.',
+            };
+          }
+
+          console.log('✅ 강의 삭제 성공');
+          return { success: true };
       
       console.log('✅ 강의 삭제 성공');
       return { success: true };

@@ -1,4 +1,5 @@
 import type { MealInfo } from '@/src/shared/ui/atoms/MealInfoCard';
+import { mealInfoApi } from '@/src/features/meal-info/api/mealInfoApi';
 import { create } from 'zustand';
 import { paymentApi } from '../api/paymentApi';
 
@@ -52,25 +53,25 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     set({ isMealInfoLoading: true, error: null });
     
     try {
-      // TODO: 실제 API 엔드포인트로 교체
-      // const response = await fetch(`${baseURL}/api/meals/${roomId}/info`);
-      // const data = await response.json();
+      const response = await mealInfoApi.getMealAppointmentInfo(roomId);
       
-      // 임시 더미 데이터
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const mockMealInfo: MealInfo = {
-        hostName: '김지은',
-        hostDepartment: '경영학과',
-        hostStudentId: '1913998',
-        hostAvatarId: 'avatar_01',
-        mealTitle: '학식 먹으러 가는 팟',
-      };
-      
-      set({ 
-        mealInfo: mockMealInfo,
-        isMealInfoLoading: false 
-      });
+      if (response.success && response.data) {
+        // API 응답을 MealInfo 타입으로 변환
+        const mealInfo: MealInfo = {
+          hostName: response.data.host.name,
+          hostDepartment: response.data.host.department,
+          hostStudentId: response.data.host.studentId,
+          hostAvatarId: response.data.host.profileUrl || 'avatar_01',
+          mealTitle: response.data.title,
+        };
+        
+        set({ 
+          mealInfo,
+          isMealInfoLoading: false 
+        });
+      } else {
+        throw new Error(response.error || '밥약 정보를 불러오는데 실패했습니다');
+      }
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : '밥약 정보를 불러오는데 실패했습니다',

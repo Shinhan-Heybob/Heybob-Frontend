@@ -25,7 +25,7 @@ export const settlementApi = {
   ): Promise<{ success: boolean; data?: CreateSettlementResponse; error?: string }> => {
     try {
       const response = await apiClient.post<CreateSettlementResponse>(
-        `/api/settle/${chatRoomId}/create`,
+        `/settle/${chatRoomId}/create`,
         request
       );
       
@@ -62,7 +62,7 @@ export const settlementApi = {
     chatRoomId: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await apiClient.post(`/api/settle/${chatRoomId}/cancel`);
+      const response = await apiClient.post(`/settle/${chatRoomId}/cancel`);
       
       if (response.success) {
         return { success: true };

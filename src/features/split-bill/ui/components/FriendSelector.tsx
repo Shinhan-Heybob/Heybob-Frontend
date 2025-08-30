@@ -1,28 +1,48 @@
 import { getAvatarById } from '@/src/shared/data/avatars';
-import { DUMMY_FRIENDS } from '@/src/shared/data/friends';
 import { Image } from 'expo-image';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+
+interface Participant {
+  id: string;
+  name: string;
+  studentId: string;
+  department: string;
+  avatarId: string;
+}
 
 interface FriendSelectorProps {
   selectedFriendIds: string[];
   onToggleFriend: (friendId: string) => void;
+  participants: Participant[];
+  isLoading: boolean;
 }
 
 export const FriendSelector: React.FC<FriendSelectorProps> = ({
   selectedFriendIds,
   onToggleFriend,
+  participants,
+  isLoading,
 }) => {
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={styles.loadingText}>참여자 정보를 불러오는 중...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.friendsList} showsVerticalScrollIndicator={false}>
-        {DUMMY_FRIENDS.map((friend) => {
-          const isSelected = selectedFriendIds.includes(friend.id);
-          const avatarImage = getAvatarById(friend.avatarId);
+        {participants.map((participant) => {
+          const isSelected = selectedFriendIds.includes(participant.id);
+          const avatarImage = getAvatarById(participant.avatarId);
           
           return (
             <View 
-              key={friend.id} 
+              key={participant.id} 
               style={[
                 styles.friendCard,
                 { opacity: isSelected ? 1.0 : 0.5 }
@@ -39,23 +59,23 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
               
               {/* 친구 정보 */}
               <View style={styles.friendInfo}>
-                <Text style={styles.friendName}>{friend.name}</Text>
-                <Text style={styles.friendDepartment}>{friend.department}</Text>
-                <Text style={styles.friendStudentId}>{friend.studentId}</Text>
+                <Text style={styles.friendName}>{participant.name}</Text>
+                <Text style={styles.friendDepartment}>{participant.department}</Text>
+                <Text style={styles.friendStudentId}>{participant.studentId}</Text>
               </View>
               
               {/* 버튼들 */}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.addButton}
-                  onPress={() => onToggleFriend(friend.id)}
+                  onPress={() => onToggleFriend(participant.id)}
                 >
                   <Text style={styles.addButtonText}>+</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity
                   style={styles.removeButton}
-                  onPress={() => onToggleFriend(friend.id)}
+                  onPress={() => onToggleFriend(participant.id)}
                 >
                   <Text style={styles.removeButtonText}>×</Text>
                 </TouchableOpacity>
@@ -71,6 +91,17 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
   },
   friendsList: {
     flex: 1,

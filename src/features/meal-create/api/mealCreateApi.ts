@@ -23,7 +23,7 @@ export const mealCreateApi = {
   ): Promise<{ success: boolean; data?: CreateMealAppointmentResponse; error?: string }> => {
     try {
       const response = await apiClient.post<CreateMealAppointmentResponse>(
-        '/api/meal-appointments',
+        '/meal-appointments',
         request
       );
       

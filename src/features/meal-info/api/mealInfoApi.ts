@@ -29,13 +29,30 @@ export const mealInfoApi = {
   ): Promise<{ success: boolean; data?: MealAppointmentInfo; error?: string }> => {
     try {
       const response = await apiClient.get<MealAppointmentInfo>(
-        `/api/meal-appointments/${appointmentId}`
+        `/meal-appointments/${appointmentId}`
       );
       
       if (response.success && response.data) {
+        // API 응답을 UI에서 기대하는 형태로 변환
+        const transformedData = {
+          mealId: response.data.id.toString(),
+          title: response.data.name,
+          date: response.data.appointmentDate,
+          time: response.data.appointmentTime.substring(0, 5), // "16:30:00" -> "16:30"
+          memo: response.data.memo,
+          host: {
+            name: response.data.creator.name,
+            studentId: response.data.creator.studentId,
+            department: response.data.creator.department,
+            profileUrl: response.data.creator.profileUrl
+          },
+          participants: response.data.participants,
+          chatRoomId: response.data.chatRoomId.toString()
+        };
+        
         return {
           success: true,
-          data: response.data
+          data: transformedData
         };
       } else {
         return {

@@ -1,11 +1,13 @@
 import { Button, Text } from '@/src/shared/ui';
 import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SelectedFriendsList } from '../../../shared/ui/molecules/SelectedFriendsList';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
 import { useGroupCreateStore } from '../model/groupCreateStore';
+import { groupApi } from '@/src/shared/api/groupApi';
+import { useAuthStore } from '@/src/features/auth/model/authStore';
 
 interface GroupDetailsScreenProps {
   onBackPress?: () => void;
@@ -14,9 +16,11 @@ interface GroupDetailsScreenProps {
 
 export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPress, onNext }) => {
   const groupStore = useGroupCreateStore();
-  const { selectedDate, selectedFriends, setBasicInfo } = groupStore;
+  const { selectedDate, selectedFriends, setBasicInfo, setCreatedMeetingId } = groupStore;
+  const { user } = useAuthStore();
   const [groupName, setGroupName] = useState('');
   const [memo, setMemo] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleBackPress = () => {
@@ -27,7 +31,7 @@ export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPr
     }
   };
 
-  const handleCreateSavings = () => {
+  const handleCreateSavings = async () => {
     // 모임 이름과 메모가 모두 입력되었는지 확인
     if (!groupName.trim() || !memo.trim()) {
       return;
@@ -38,9 +42,35 @@ export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPr
       title: groupName.trim(),
       description: memo.trim()
     });
+
+    setIsLoading(true);
     
-    // 적금 만들기 페이지로 이동
-    router.push('/groups/create/savings-account');
+    try {
+      // 정기 모임 생성 API 호출
+      const result = await groupApi.createRegularMeeting({
+        name: groupName.trim(),
+        memo: memo.trim(),
+        appointmentDate: selectedDate?.date || new Date().toISOString().split('T')[0],
+        appointmentTime: '12:00:00', // 기본 시간 설정
+        participantIds: selectedFriends.map(friend => parseInt(friend.id)),
+        mealType: 'REGULAR_MEETING'
+      });
+
+      if (result.success && result.data) {
+        // 생성된 모임 ID 저장
+        setCreatedMeetingId(result.data.id);
+        
+        // 적금 만들기 페이지로 이동
+        router.push('/groups/create/savings-account');
+      } else {
+        Alert.alert('오류', result.error || '정기 모임 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error creating regular meeting:', error);
+      Alert.alert('오류', '정기 모임 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 버튼 활성화 조건
@@ -137,12 +167,12 @@ export const GroupDetailsScreen: React.FC<GroupDetailsScreenProps> = ({ onBackPr
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="적금 만들기"
+          title={isLoading ? "생성 중..." : "적금 만들기"}
           onPress={handleCreateSavings}
-          disabled={!isCreateButtonEnabled}
+          disabled={!isCreateButtonEnabled || isLoading}
           style={[
             styles.createButton,
-            !isCreateButtonEnabled && styles.createButtonDisabled
+            (!isCreateButtonEnabled || isLoading) && styles.createButtonDisabled
           ]}
         />
       </View>

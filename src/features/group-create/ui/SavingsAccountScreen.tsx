@@ -1,28 +1,64 @@
 import { Button, Text } from '@/src/shared/ui';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { StepProgress } from '../../../shared/ui/molecules/StepProgress';
 import { MealCreateHeader } from '../../meal-create/ui/components/MealCreateHeader';
 import { useGroupCreateStore } from '../model/groupCreateStore';
+import { groupApi } from '@/src/shared/api/groupApi';
 
 export const SavingsAccountScreen: React.FC = () => {
-  const { selectedFriends, setAmountPerPerson: setStoreAmountPerPerson, savingsInfo } = useGroupCreateStore();
+  const { selectedFriends, setAmountPerPerson: setStoreAmountPerPerson, savingsInfo, createdMeetingId } = useGroupCreateStore();
   const [amountPerPerson, setAmountPerPerson] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleBackPress = () => {
     router.back();
   };
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     // 1인당 금액이 입력되었는지 확인
     if (!amountPerPerson.trim() || isNaN(Number(amountPerPerson))) {
       return;
     }
+
+    if (!createdMeetingId) {
+      Alert.alert('오류', '모임 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    setIsLoading(true);
     
-    // 모임 생성 완료 페이지로 이동
-    router.push('/groups/create/success');
+    try {
+      // 1단계: 모임 상세 정보를 조회하여 chatRoomId 획득
+      const meetingDetailResult = await groupApi.getMeetingDetail(createdMeetingId);
+      
+      if (!meetingDetailResult.success || !meetingDetailResult.data) {
+        Alert.alert('오류', meetingDetailResult.error || '모임 정보를 불러올 수 없습니다.');
+        return;
+      }
+
+      const chatRoomId = meetingDetailResult.data.chatRoomId;
+      
+      // 2단계: 획득한 chatRoomId로 적금 계좌 생성 API 호출
+      const result = await groupApi.createSavingsAccount(chatRoomId, {
+        perHeadBalance: Number(amountPerPerson),
+        totalAmount: savingsInfo?.totalAmount || 0
+      });
+
+      if (result.success) {
+        // 모임 생성 완료 페이지로 이동
+        router.push('/groups/create/success');
+      } else {
+        Alert.alert('오류', result.error || '적금 계좌 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error creating savings account:', error);
+      Alert.alert('오류', '적금 계좌 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // store에서 적금 정보 가져오기 또는 기본값 사용
@@ -154,12 +190,12 @@ export const SavingsAccountScreen: React.FC = () => {
       {/* 하단 고정 버튼 */}
       <View style={styles.bottomContainer}>
         <Button
-          title="모임 만들기"
+          title={isLoading ? "생성 중..." : "모임 만들기"}
           onPress={handleCreateGroup}
-          disabled={!isCreateButtonEnabled}
+          disabled={!isCreateButtonEnabled || isLoading}
           style={[
             styles.createButton,
-            !isCreateButtonEnabled && styles.createButtonDisabled
+            (!isCreateButtonEnabled || isLoading) && styles.createButtonDisabled
           ]}
         />
       </View>

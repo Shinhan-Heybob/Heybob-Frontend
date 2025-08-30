@@ -1,4 +1,5 @@
 import { chatListApi } from '@/src/shared/api/chatListApi';
+import { storage } from '@/src/shared/lib/storage';
 import { create } from 'zustand';
 import type { ChatListFilters, ChatListItem, ChatStatus, ChatType } from './types';
 
@@ -69,6 +70,14 @@ export const useChatListStore = create<ChatListStore>((set, get) => ({
     
     if (!currentUserId) {
       set({ error: '사용자 정보가 없습니다' });
+      return;
+    }
+
+    // 토큰 확인
+    const accessToken = await storage.getAccessToken();
+    if (!accessToken) {
+      console.log('🔍 chatListStore - 토큰이 없어서 API 호출 안함');
+      set({ error: '인증이 필요합니다' });
       return;
     }
 

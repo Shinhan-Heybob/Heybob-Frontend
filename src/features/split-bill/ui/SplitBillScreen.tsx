@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSplitBillStore } from '../model/splitBillStore';
+import { settlementApi } from '../api/settlementApi';
 import { AmountInput } from './components/AmountInput';
 import { CalculatedAmount } from './components/CalculatedAmount';
 import { FriendSelector } from './components/FriendSelector';
@@ -67,19 +68,10 @@ export const SplitBillScreen: React.FC<SplitBillScreenProps> = ({ roomId }) => {
     setShowCalculatedAmount(true);
   };
 
-  // 취소 API 호출
-  const handleCancel = async () => {
-    try {
-      // TODO: 실제 API 엔드포인트로 교체
-      // await fetch(`${baseURL}/api/settle/${roomId}/cancel`, {
-      //   method: 'POST'
-      // });
-      
-      reset();
-      router.back();
-    } catch (error) {
-      Alert.alert('오류', '취소 중 오류가 발생했습니다.');
-    }
+  // 취소 (API 호출 없음)
+  const handleCancel = () => {
+    reset();
+    router.back();
   };
 
   // 정산 요청 API 호출
@@ -90,28 +82,29 @@ export const SplitBillScreen: React.FC<SplitBillScreenProps> = ({ roomId }) => {
     }
 
     try {
-      // TODO: 실제 API 엔드포인트로 교체
-      // const response = await fetch(`${baseURL}/api/settle/${roomId}/pay`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     totalAmount: parseInt(totalAmount.replace(/,/g, '')),
-      //     participantIds: selectedFriendIds,
-      //     amountPerPerson: calculatedAmount
-      //   })
-      // });
+      const totalAmountNumber = parseInt(totalAmount.replace(/,/g, ''));
+      
+      const result = await settlementApi.createSettlement(roomId, {
+        totalAmount: totalAmountNumber,
+        participantIds: selectedFriendIds,
+        description: '1/N 정산'
+      });
 
-      Alert.alert('완료', '정산을 요청했습니다!', [
-        {
-          text: '확인',
-          onPress: () => {
-            reset();
-            setCalculatedAmount(null);
-            setShowCalculatedAmount(false);
-            router.back();
+      if (result.success) {
+        Alert.alert('완료', '정산을 요청했습니다!', [
+          {
+            text: '확인',
+            onPress: () => {
+              reset();
+              setCalculatedAmount(null);
+              setShowCalculatedAmount(false);
+              router.back();
+            }
           }
-        }
-      ]);
+        ]);
+      } else {
+        Alert.alert('오류', result.error || '정산 요청에 실패했습니다.');
+      }
     } catch (error) {
       Alert.alert('오류', '정산 요청 중 오류가 발생했습니다.');
     }

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { mealCreateApi } from '../api/mealCreateApi';
 import { compareTimetables } from '../../../shared/api/timetableCompareApi';
 
 // 친구 정보 타입
@@ -42,8 +43,12 @@ interface MealCreateState {
   // 선택된 시간대
   selectedTimeSlot: SelectedTimeSlot | null;
   
+  // 생성된 밥약 ID
+  createdAppointmentId: number | null;
+  
   // 로딩 상태
   isLoadingTimeSlots: boolean;
+  isCreatingMeal: boolean;
   
   // 에러 상태
   error: string | null;
@@ -64,6 +69,9 @@ interface MealCreateActions {
   // 시간대 선택
   setSelectedTimeSlot: (timeSlot: SelectedTimeSlot) => void;
   
+  // 밥약 생성
+  createMealAppointment: (name: string, memo: string) => Promise<number | null>;
+  
   // 초기화
   resetMealCreate: () => void;
   
@@ -82,7 +90,9 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
   selectedFriends: [],
   availableTimeSlots: [],
   selectedTimeSlot: null,
+  createdAppointmentId: null,
   isLoadingTimeSlots: false,
+  isCreatingMeal: false,
   error: null,
 
   // 날짜 선택
@@ -259,6 +269,57 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
     set({ selectedTimeSlot: timeSlot });
   },
 
+  // 밥약 생성 API 호출
+  createMealAppointment: async (name: string, memo: string) => {
+    const { selectedDate, selectedTimeSlot, selectedFriends } = get();
+    
+    if (!selectedDate || !selectedTimeSlot) {
+      set({ error: '날짜와 시간을 선택해주세요' });
+      return null;
+    }
+
+    set({ isCreatingMeal: true, error: null });
+
+    try {
+      // 현재 사용자 ID 가져오기 (임시로 1 사용, 실제로는 userStore에서)
+      const creatorId = 1; // TODO: useUserStore에서 실제 사용자 ID 가져오기
+      
+      // participantIds는 selectedFriends의 id를 number로 변환
+      const participantIds = selectedFriends.map(friend => parseInt(friend.id));
+      
+      const result = await mealCreateApi.createMealAppointment({
+        name,
+        memo,
+        appointmentDate: selectedDate.date,
+        appointmentTime: selectedTimeSlot.time + ':00', // "11:30" → "11:30:00"
+        participantIds,
+        creatorId,
+        mealType: 'MEAL_APPOINTMENT'
+      });
+
+      if (result.success && result.data) {
+        const appointmentId = result.data.id;
+        set({ 
+          createdAppointmentId: appointmentId,
+          isCreatingMeal: false 
+        });
+        return appointmentId;
+      } else {
+        set({ 
+          error: result.error || '밥약 생성에 실패했습니다',
+          isCreatingMeal: false 
+        });
+        return null;
+      }
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : '밥약 생성 중 오류가 발생했습니다',
+        isCreatingMeal: false 
+      });
+      return null;
+    }
+  },
+
   // 전체 초기화
   resetMealCreate: () => {
     if (debounceTimer) {
@@ -270,7 +331,9 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
       selectedFriends: [],
       availableTimeSlots: [],
       selectedTimeSlot: null,
+      createdAppointmentId: null,
       isLoadingTimeSlots: false,
+      isCreatingMeal: false,
       error: null,
     });
   },

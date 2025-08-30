@@ -54,7 +54,7 @@ export interface ChatMessageResponse {
   senderName: string;
   profileImageUrl?: string;
   content: string;
-  messageType: string;
+  messageType: MessageType;
   timestamp: string;
   paymentRequestData?: PaymentRequestData;
   paymentCompleteData?: PaymentCompleteData;

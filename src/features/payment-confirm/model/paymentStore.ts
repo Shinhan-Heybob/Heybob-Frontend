@@ -1,10 +1,15 @@
 import type { MealInfo } from '@/src/shared/ui/atoms/MealInfoCard';
 import { create } from 'zustand';
+import { paymentApi } from '../api/paymentApi';
 
 interface PaymentState {
   // 밥약 정보
   mealInfo: MealInfo | null;
   isMealInfoLoading: boolean;
+  
+  // 정산 정보
+  roomId: string | null;
+  amount: number | null;
   
   // API 호출 상태
   isProcessing: boolean;
@@ -16,6 +21,9 @@ interface PaymentState {
 interface PaymentActions {
   // 밥약 정보 로드
   loadMealInfo: (roomId: string) => Promise<void>;
+  
+  // 정산 정보 설정
+  setPaymentInfo: (roomId: string, amount: number) => void;
   
   // 결제 취소
   cancelPayment: (messageId: string) => Promise<boolean>;
@@ -34,6 +42,8 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   // 초기 상태
   mealInfo: null,
   isMealInfoLoading: false,
+  roomId: null,
+  amount: null,
   isProcessing: false,
   error: null,
 
@@ -69,6 +79,11 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     }
   },
 
+  // 정산 정보 설정
+  setPaymentInfo: (roomId: string, amount: number) => {
+    set({ roomId, amount });
+  },
+
   // 결제 취소
   cancelPayment: async (messageId: string) => {
     set({ isProcessing: true, error: null });
@@ -100,27 +115,33 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
 
   // 결제 확정
   confirmPayment: async (messageId: string) => {
+    const { roomId, amount } = get();
+    
+    if (!roomId || !amount) {
+      set({ error: '정산 정보가 없습니다' });
+      return false;
+    }
+    
     set({ isProcessing: true, error: null });
     
     try {
-      // TODO: 실제 API 엔드포인트로 교체
-      // const response = await fetch(`${baseURL}/api/payments/${messageId}/confirm`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
+      const result = await paymentApi.participatePayment(roomId, {
+        messageId
+      });
       
-      // if (!response.ok) {
-      //   throw new Error('결제 처리에 실패했습니다');
-      // }
-      
-      // 임시 성공 처리
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      set({ isProcessing: false });
-      return true;
+      if (result.success) {
+        set({ isProcessing: false });
+        return true;
+      } else {
+        set({ 
+          error: result.error || '정산 처리에 실패했습니다',
+          isProcessing: false 
+        });
+        return false;
+      }
     } catch (error) {
       set({ 
-        error: error instanceof Error ? error.message : '결제 처리에 실패했습니다',
+        error: error instanceof Error ? error.message : '정산 처리에 실패했습니다',
         isProcessing: false 
       });
       return false;
@@ -132,6 +153,8 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     set({
       mealInfo: null,
       isMealInfoLoading: false,
+      roomId: null,
+      amount: null,
       isProcessing: false,
       error: null,
     });

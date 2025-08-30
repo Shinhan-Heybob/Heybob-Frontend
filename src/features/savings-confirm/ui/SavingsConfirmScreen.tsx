@@ -22,15 +22,17 @@ export const SavingsConfirmScreen: React.FC<SavingsConfirmScreenProps> = ({
     isProcessing,
     error,
     loadGroupInfo,
+    setSavingsInfo,
     cancelSavings,
     confirmSavings,
     reset,
     clearError,
   } = useSavingsStore();
 
-  // 컴포넌트 마운트 시 모임 정보 로드
+  // 컴포넌트 마운트 시 모임 정보 로드 및 적금 정보 설정
   useEffect(() => {
     loadGroupInfo(roomId);
+    setSavingsInfo(roomId);
     
     return () => {
       reset();
@@ -51,12 +53,9 @@ export const SavingsConfirmScreen: React.FC<SavingsConfirmScreenProps> = ({
     router.back();
   };
 
-  // 취소 버튼
-  const handleCancel = async () => {
-    const success = await cancelSavings(messageId);
-    if (success) {
-      router.back();
-    }
+  // 취소 버튼 (API 호출 없음)
+  const handleCancel = () => {
+    router.back();
   };
 
   // 모으기 버튼

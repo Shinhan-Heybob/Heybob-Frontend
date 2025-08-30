@@ -7,7 +7,7 @@ import { apiClient } from '@/src/shared/api/client';
 // 실제 사용자 정보를 사용하되, 없으면 임시 정보 사용
 const TEMP_CURRENT_USER = {
   userId: '1234567',
-  name: '김미림',
+  userName: '김미림',
   studentId: '1234567',
   profileImageUrl: 'http://profileImage/kim-mirim.jpg',
 };

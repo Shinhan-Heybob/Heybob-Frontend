@@ -103,7 +103,6 @@ export const useSplitBillStore = create<SplitBillStore>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      // TODO: 실제 API 엔드포인트로 교체
       const paymentRequestData = {
         messageType: 'PAYMENT_REQUEST',
         roomId: roomId,
@@ -112,13 +111,6 @@ export const useSplitBillStore = create<SplitBillStore>((set, get) => ({
         description: description,
         createdAt: new Date().toISOString(),
       };
-      
-      // 실제 구현:
-      // const response = await fetch('/api/payments/request', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(paymentRequestData)
-      // });
       
       // 임시: 성공으로 처리
       await new Promise(resolve => setTimeout(resolve, 1000));

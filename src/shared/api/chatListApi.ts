@@ -7,10 +7,8 @@ export const chatListApi = {
   getChatList: async (userId: number, status: ChatStatus, type: ChatType) => {
     const queryParams = new URLSearchParams();
     
-    // status가 'all'이 아닌 경우만 파라미터로 추가
-    if (status !== 'all') {
-      queryParams.append('status', status);
-    }
+    // status는 항상 파라미터로 추가 (active 또는 inactive)
+    queryParams.append('status', status);
     
     // type이 'all'이 아닌 경우만 파라미터로 추가  
     if (type !== 'all') {

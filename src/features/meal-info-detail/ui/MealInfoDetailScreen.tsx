@@ -3,7 +3,8 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useMealInfoDetailStore, type MealDetailInfo } from '../model/mealInfoDetailStore';
+import { useMealInfoDetailStore } from '../model/mealInfoDetailStore';
+import type { MealDetailInfo } from '../model/types';
 import { SettlementAmountCard } from './components/SettlementAmountCard';
 import { SettlementStatusList } from './components/SettlementStatusList';
 
@@ -46,7 +47,7 @@ export const MealInfoDetailScreen: React.FC<MealInfoDetailScreenProps> = ({ meal
   // MealDetailInfo → MealInfoCard 타입 변환
   const convertToMealInfoCardType = (info: MealDetailInfo): MealInfo => {
     return {
-      hostName: info.host.name,
+      hostName: `${info.host.name} (방장)`,
       hostDepartment: info.host.department,
       hostStudentId: info.host.studentId,
       hostAvatarId: info.host.profileUrl,

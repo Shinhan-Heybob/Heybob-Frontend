@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { accountHistoryApi } from '../api/accountHistoryApi';
 import type { DateRange, DateSection, FormattedTransaction, TransactionHistoryDto } from './types';
+import { getKoreanDate, formatDateToYYYYMMDD } from '@/src/shared/utils/dateUtils';
 
 interface AccountHistoryState {
   // 데이터
@@ -35,14 +36,23 @@ type AccountHistoryStore = AccountHistoryState & AccountHistoryActions;
 
 // 기본 날짜 범위 (최근 30일)
 const getDefaultDateRange = (): DateRange => {
-  const today = new Date();
-  const thirtyDaysAgo = new Date();
+  // 한국 시간대 기준 날짜 가져오기
+  const today = getKoreanDate();
+  const thirtyDaysAgo = getKoreanDate();
   thirtyDaysAgo.setDate(today.getDate() - 30);
   
-  return {
-    startDate: thirtyDaysAgo.toISOString().slice(0, 10).replace(/-/g, ''), // YYYYMMDD
-    endDate: today.toISOString().slice(0, 10).replace(/-/g, ''), // YYYYMMDD
+  const dateRange = {
+    startDate: formatDateToYYYYMMDD(thirtyDaysAgo), // YYYYMMDD
+    endDate: formatDateToYYYYMMDD(today), // YYYYMMDD
   };
+  
+  console.log('📅 Default Date Range (KST):', {
+    today: today.toLocaleDateString('ko-KR'),
+    endDate: dateRange.endDate,
+    startDate: dateRange.startDate
+  });
+  
+  return dateRange;
 };
 
 // 거래 유형이 입금인지 확인하는 헬퍼 함수

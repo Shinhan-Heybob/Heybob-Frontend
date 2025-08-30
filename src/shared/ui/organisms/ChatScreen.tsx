@@ -4,6 +4,8 @@ import { ChatHeader } from '@/src/features/chat/ui/components/ChatHeader';
 import { AiChatbot } from '@/src/features/chat/ui/components/AiChatbot';
 import { MessageInput } from '@/src/shared/ui/atoms/MessageInput';
 import { MessageList } from '@/src/shared/ui/molecules/MessageList';
+import { settlementApi } from '@/src/shared/api/settlementApi';
+import { savingsApi } from '@/src/shared/api/savingsApi';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -174,15 +176,31 @@ export const SharedChatScreen: React.FC<SharedChatScreenProps> = ({
   };
 
   // 정보 보기 (밥약 정보 or 모임 정보)
-  const handleInfoPress = () => {
-    if (chatType === 'meal') {
-      // 밥약 정보 보기
-      const mealId = 'meal-123'; // 실제로는 현재 채팅방과 연결된 mealId 사용
-      router.push(`/meal-info/${mealId}`);
-    } else {
-      // 모임 정보 보기
-      const groupId = roomId.replace('group_', ''); // 실제로는 roomId에서 groupId 추출
-      router.push(`/groups/${groupId}/info`);
+  const handleInfoPress = async () => {
+    try {
+      if (chatType === 'meal') {
+        // 밥약 정산 정보 페이지로 이동
+        router.push({
+          pathname: '/meal-info/[mealId]',
+          params: {
+            mealId: roomId
+          }
+        });
+      } else {
+        // 모임 정보 페이지로 이동
+        router.push({
+          pathname: '/groups/[groupId]/info',
+          params: {
+            groupId: roomId
+          }
+        });
+      }
+    } catch (error) {
+      console.error('페이지 이동 실패:', error);
+      const errorMessage = chatType === 'meal' 
+        ? '밥약 정보 페이지로 이동할 수 없습니다.' 
+        : '모임 정보 페이지로 이동할 수 없습니다.';
+      Alert.alert('오류', errorMessage);
     }
   };
 

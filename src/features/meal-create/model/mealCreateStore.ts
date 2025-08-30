@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { compareTimetables } from '../../../shared/api/timetableCompareApi';
 
 // 친구 정보 타입
 export interface Friend {
@@ -160,23 +161,62 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
     set({ isLoadingTimeSlots: true, error: null });
     
     try {
-      // TODO: 실제 API 엔드포인트로 교체
-      // const response = await fetch('/api/schedules/available-times', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     date: selectedDate.date,
-      //     friendIds: selectedFriends.map(f => f.id)
-      //   })
-      // });
-      // const data = await response.json();
+      // 실제 API 호출
+      const userIdList = selectedFriends.map(f => parseInt(f.id));
       
-      // 임시 더미 데이터 (API 연동 전까지 사용)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('📋 선택된 친구들:', selectedFriends);
+      console.log('📋 친구들의 ID:', selectedFriends.map(f => f.id));
+      console.log('📋 변환된 userIdList:', userIdList);
+      console.log('📋 API 요청 데이터:', { userIdList, day: selectedDate.date });
       
-      // 선택된 친구 이름 목록
+      const response = await compareTimetables({
+        userIdList,
+        day: selectedDate.date
+      });
+      
+      if (response.success && response.data) {
+        console.log('📋 Store에서 받은 API 데이터:', response.data);
+        console.log('📋 타임슬롯 개수:', response.data.timeslots.length);
+        console.log('📋 첫 번째 타임슬롯:', response.data.timeslots[0]);
+        
+        // API 응답을 UI에 맞는 형태로 변환
+        const timeSlots: TimeSlotData[] = response.data.timeslots.map((slot, index) => {
+          console.log(`📋 슬롯 ${index}: `, slot);
+          console.log(`📋 슬롯 ${index} availablePeopleName:`, slot.availablePeopleName);
+          console.log(`📋 슬롯 ${index} availablePeopleName 타입:`, typeof slot.availablePeopleName);
+          
+          // 선택된 친구 전원이 공강인지 확인
+          const isAllAvailable = slot.availablePeopleName.length === selectedFriends.length;
+          
+          return {
+            time: slot.startTime.substring(0, 5), // "09:00:00" -> "09:00"
+            availableFriends: slot.availablePeopleName,
+            isAllAvailable
+          };
+        });
+        
+        console.log('📋 변환된 timeSlots:', timeSlots);
+        
+        // 공강인 친구가 있는 시간대만 필터링 (적어도 1명 이상)
+        const availableTimeSlots = timeSlots.filter(slot => 
+          slot.availableFriends.length > 0
+        );
+        
+        console.log('📋 필터링된 availableTimeSlots:', availableTimeSlots);
+        
+        set({ 
+          availableTimeSlots,
+          isLoadingTimeSlots: false 
+        });
+      } else {
+        throw new Error(response.error || '시간표 비교 실패');
+      }
+    } catch (error) {
+      console.error('시간표 대조 오류:', error);
+      
+      // 에러 발생시 기존 더미 데이터로 폴백
       const selectedFriendNames = selectedFriends.map(f => f.name);
       
-      // 더미 시간표 데이터 (실제로는 API에서 받아올 데이터)
       const allTimeSlots = [
         { time: '11:30', availableFriends: ['지예은', '박재준'] },
         { time: '12:00', availableFriends: ['지예은', '박재준', '김민수'] },
@@ -188,18 +228,15 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
         { time: '15:00', availableFriends: ['지예은', '이수현'] },
       ];
       
-      // 선택된 친구 중 적어도 한 명이 공강인 시간대만 필터링
       const relevantTimeSlots = allTimeSlots
         .filter(slot => 
           slot.availableFriends.some(friendName => selectedFriendNames.includes(friendName))
         )
         .map(slot => {
-          // 실제로 선택된 친구 중 공강인 친구들만 표시
           const availableFriends = slot.availableFriends.filter(friendName => 
             selectedFriendNames.includes(friendName)
           );
           
-          // 선택된 친구 전원이 공강인지 확인
           const isAllAvailable = availableFriends.length === selectedFriends.length;
           
           return {
@@ -209,16 +246,10 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
           };
         });
       
-      const dummyTimeSlots: TimeSlotData[] = relevantTimeSlots;
-      
       set({ 
-        availableTimeSlots: dummyTimeSlots,
-        isLoadingTimeSlots: false 
-      });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : '시간표를 불러오는데 실패했습니다',
-        isLoadingTimeSlots: false 
+        availableTimeSlots: relevantTimeSlots,
+        isLoadingTimeSlots: false,
+        error: error instanceof Error ? error.message : '시간표를 불러오는데 실패했습니다'
       });
     }
   },

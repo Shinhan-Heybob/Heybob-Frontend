@@ -75,7 +75,7 @@ export const FindFriendsScreen: React.FC = () => {
           if (response.success && response.data) {
             // User 타입을 FriendData 타입으로 변환
             const friendResults: FriendData[] = response.data.map((user: User) => ({
-              id: user.studentId,
+              id: user.id.toString(), // userId를 문자열로 변환해서 저장
               name: user.name,
               studentId: user.studentId,
               school: user.university,
@@ -100,7 +100,7 @@ export const FindFriendsScreen: React.FC = () => {
                 return false;
               })
               .map(user => ({
-                id: user.studentId,
+                id: user.id.toString(), // userId를 문자열로 변환해서 저장
                 name: user.name,
                 studentId: user.studentId,
                 school: user.university,

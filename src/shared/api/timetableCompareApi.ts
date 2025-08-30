@@ -13,6 +13,7 @@ export interface TimeSlot {
   startTime: string;        // "09:00:00"
   endTime: string;          // "09:30:00"
   availablePeopleName: string[];  // ["김철수", "이영희"]
+  isAllAvailable: boolean;
 }
 
 export interface TimetableCompareResponse {

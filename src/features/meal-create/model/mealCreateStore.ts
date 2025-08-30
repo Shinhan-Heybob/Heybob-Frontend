@@ -201,7 +201,7 @@ export const useMealCreateStore = create<MealCreateStore>((set, get) => ({
           return {
             time: slot.startTime.substring(0, 5), // "09:00:00" -> "09:00"
             availableFriends: slot.availablePeopleName,
-            isAllAvailable
+            isAllAvailable: slot.isAllAvailable
           };
         });
         

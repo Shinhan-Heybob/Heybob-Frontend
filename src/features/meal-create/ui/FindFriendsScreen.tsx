@@ -131,8 +131,9 @@ export const FindFriendsScreen: React.FC = () => {
 
   // QR 스캔 성공 처리
   const handleQRScanSuccess = (data: any) => {
-    // QR 생성 데이터 형식: { studentId, name, schoolId, departmentId, issueTime }
+    // QR 생성 데이터 형식: { userId, studentId, name, schoolId, departmentId, issueTime }
     console.log('🔍 QR 스캔 데이터:', data);
+    console.log('🔍 userId:', data.userId);
     console.log('🔍 찾는 schoolId:', data.schoolId);
     console.log('🔍 찾는 departmentId:', data.departmentId);
     
@@ -150,7 +151,7 @@ export const FindFriendsScreen: React.FC = () => {
 
     // QR 스캔된 친구 데이터 생성
     const scannedFriend: FriendData & { isQRScanned: boolean } = {
-      id: data.studentId, // 실제 studentId 사용 (qr_ prefix 제거)
+      id: data.userId || data.studentId, // userId 우선 사용, 없으면 studentId 폴백
       name: data.name,
       studentId: data.studentId,
       school: school.name,

@@ -1,8 +1,65 @@
 import { apiClient, type ApiResponse } from './client';
-import type { GroupInfo, SavingsHistoryItem } from '@/src/features/group-info/model/types';
+import type { GroupInfo, SavingsHistoryItem, SavingsPageResponse } from '@/src/features/group-info/model/types';
 
 class GroupApiService {
+  // 데이터 변환 함수
+  private transformSavingsData(apiData: SavingsPageResponse): GroupInfo {
+    // 방장 정보 찾기
+    const initiator = apiData.participants.find(p => p.userId === apiData.initiatorId);
+    
+    return {
+      groupId: apiData.savingsId.toString(),
+      title: apiData.groupName,
+      date: apiData.meetingDate, // 날짜만 사용, 시간은 무시
+      memo: apiData.groupDescription,
+      host: {
+        name: apiData.initiatorName,
+        studentId: initiator?.studentId || '',
+        department: initiator?.department || '',
+        profileUrl: initiator?.profileUrl || ''
+      },
+      participants: apiData.participants.map(p => ({
+        name: p.userName, // userName → name
+        studentId: p.studentId,
+        department: p.department,
+        profileUrl: p.profileUrl
+      })),
+      chatRoomId: apiData.groupId.toString(), // groupId를 chatRoomId로 사용
+      savingsHistory: apiData.savingsHistory.map(history => ({
+        savingsId: `savings_${history.round}`,
+        round: history.round,
+        date: history.date,
+        amount: history.totalAmount, // totalAmount → amount
+        participants: history.participants.map(p => ({
+          name: p.userName, // userName → name
+          studentId: p.studentId,
+          department: p.department,
+          profileUrl: p.profileUrl,
+          isCompleted: p.isPaid // isPaid → isCompleted
+        }))
+      }))
+    };
+  }
+
+  // 채팅방 ID로 적금/모임 정보 조회
+  async getSavingsInfo(chatRoomId: string): Promise<GroupInfo> {
+    try {
+      const response = await apiClient.get<SavingsPageResponse>(`/savings/${chatRoomId}/page`);
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || '모임 정보를 불러올 수 없습니다');
+      }
+      
+      // API 응답 데이터를 화면용 데이터로 변환
+      return this.transformSavingsData(response.data);
+    } catch (error) {
+      console.error('Failed to get savings info:', error);
+      throw error;
+    }
+  }
+
   async getGroupInfo(groupId: string): Promise<GroupInfo> {
+    // 기존 Mock 데이터는 유지 (필요시 getSavingsInfo 사용)
     // TODO: 백엔드 준비되면 실제 API 호출로 교체
     // const response = await apiClient.get<GroupInfo>(`/groups/${groupId}/info`);
     // 

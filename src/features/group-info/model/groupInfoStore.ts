@@ -8,7 +8,7 @@ export const useGroupInfoStore = create<GroupInfoState>((set, get) => ({
   loadingStates: new Map<string, boolean>(),
 
   // 그룹 정보 로드 (캐시 포함)
-  loadGroupInfo: async (groupId: string): Promise<GroupInfo | null> => {
+  loadGroupInfo: async (groupId: string, useSavingsApi: boolean = false): Promise<GroupInfo | null> => {
     try {
       // 이미 캐시된 데이터가 있는지 확인
       const existing = get().groupInfos.get(groupId);
@@ -22,7 +22,10 @@ export const useGroupInfoStore = create<GroupInfoState>((set, get) => ({
       }));
 
       // API 서비스 사용
-      const groupInfo = await groupApi.getGroupInfo(groupId);
+      // useSavingsApi가 true면 새로운 API 사용, 아니면 기존 mock 데이터
+      const groupInfo = useSavingsApi 
+        ? await groupApi.getSavingsInfo(groupId)  // 실제 API 호출
+        : await groupApi.getGroupInfo(groupId);   // Mock 데이터
 
       // 캐시에 저장
       set(state => ({

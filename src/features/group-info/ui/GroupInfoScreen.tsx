@@ -35,7 +35,8 @@ export const GroupInfoScreen: React.FC<GroupInfoScreenProps> = ({ groupId }) => 
   useEffect(() => {
     const loadData = async () => {
       try {
-        await loadGroupInfo(groupId);
+        // 실제 API 사용 (useSavingsApi = true)
+        await loadGroupInfo(groupId, true);
       } catch (error) {
         console.error('Failed to load group info:', error);
         Alert.alert('오류', '모임 정보를 불러올 수 없습니다.');

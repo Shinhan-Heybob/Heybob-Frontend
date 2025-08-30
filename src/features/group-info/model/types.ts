@@ -1,3 +1,50 @@
+// API 응답 타입
+export interface SavingsPageResponse {
+  savingsId: number;
+  status: string;
+  initiatorId: number;
+  initiatorName: string;
+  groupId: number;
+  groupName: string;
+  groupDescription: string;
+  meetingDate: string;
+  meetingTime: string;
+  targetAmount: number;
+  currentAmount: number;
+  perHeadAmount: number;
+  participantsCount: number;
+  paidCount: number;
+  savingsRound: number;
+  participants: Array<{
+    userId: number;
+    userName: string;
+    studentId: string;
+    department: string;
+    profileUrl: string;
+    monthlyAmount: number;
+    totalPaidAmount: number;
+    isPaidThisMonth: boolean;
+    status: string;
+  }>;
+  savingsHistory: Array<{
+    round: number;
+    date: string;
+    totalAmount: number;
+    paidCount: number;
+    totalCount: number;
+    participants: Array<{
+      userId: number;
+      userName: string;
+      studentId: string;
+      department: string;
+      profileUrl: string;
+      amount: number;
+      isPaid: boolean;
+      paidDate: string | null;
+    }>;
+  }>;
+}
+
 export interface SavingsHistoryItem {
   savingsId: string;
   round: number;
@@ -41,7 +88,7 @@ export interface GroupInfoState {
   loadingStates: Map<string, boolean>;
   
   // 액션들
-  loadGroupInfo: (groupId: string) => Promise<GroupInfo | null>;
+  loadGroupInfo: (groupId: string, useSavingsApi?: boolean) => Promise<GroupInfo | null>;
   getGroupInfo: (groupId: string) => GroupInfo | null;
   isLoading: (groupId: string) => boolean;
   clearGroupInfo: (groupId: string) => void;

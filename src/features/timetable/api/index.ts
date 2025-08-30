@@ -179,29 +179,36 @@ export class TimetableApi {
   }
 
   // 강의 수정
-  static async updateLecture(lectureId: number, data: LectureUpdateRequest): Promise<ApiResponse<void>> {
+  static async updateLecture(timetableId: number, lectureId: number, data: LectureUpdateRequest): Promise<ApiResponse<void>> {
     try {
-      console.log('🌐 강의 수정 API 요청:', { lectureId, data });
       
-      // TODO: 실제 API 연동시 아래 주석 해제
-      // const response = await fetch(`${API_BASE_URL}/timetable/lecture/${lectureId}`, {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   return { 
-      //     success: false, 
-      //     apiError: errorData,
-      //     error: errorData.message || '강의 수정에 실패했습니다.' 
-      //   };
-      // }
-      
-      // 임시 더미 응답 (1초 지연)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const token = await storage.getAccessToken();
+          if (!token) {
+            return {
+              success: false,
+              error: '로그인이 필요합니다.',
+            };
+          }
+
+          console.log('🌐 강의 수정 API 요청:', { timetableId, lectureId, data });
+
+          const response = await fetch(`${API_BASE_URL}/timetable/${timetableId}/lecture/${lectureId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`, // 토큰 헤더 포함
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            return {
+              success: false,
+              apiError: errorData,
+              error: errorData.message || '강의 수정에 실패했습니다.'
+            };
+          }
       console.log('✅ 강의 수정 성공');
       return { success: true };
       
